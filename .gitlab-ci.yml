@@ -1,12 +1,14 @@
 image: registry.gitlab.com/remipassmoilesel/gitsearch/ci-image:0.1
 
 variables:
-  GOCACHE: .gocache
+  GOCACHE: "$CI_PROJECT_DIR/.go-cache"
+  YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
 
 cache:
   key: global
   paths:
-    - .gocache
+    - .go-cache
+    - .yarn-cache
     - web-client/node_modules
 
 stages:
