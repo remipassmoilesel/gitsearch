@@ -1,0 +1,18 @@
+image: registry.gitlab.com/remipassmoilesel/gitsearch/ci-image:0.1
+
+variables:
+  GOCACHE: .gocache
+
+cache:
+  key: global
+  paths:
+    - .gocache
+    - web-client/node_modules
+
+stages:
+  - build
+
+build:
+  script:
+    - ./scripts/ci.sh
+
