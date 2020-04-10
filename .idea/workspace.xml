@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="13e4a99b-3b08-4dc3-806d-36603e7b073c" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CodeStyleSettingsInfer">
+    <option name="done" value="true" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+      </list>
+    </option>
+  </component>
+  <component name="GOROOT" path="/usr/lib/go" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="GoLibraries">
+    <option name="indexEntireGoPath" value="false" />
+  </component>
+  <component name="ProjectCodeStyleSettingsMigration">
+    <option name="version" value="1" />
+  </component>
+  <component name="ProjectId" id="1a8YW9n9oUZpK2sUGVLllIJD5U1" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="DefaultGoTemplateProperty" value="Go File" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="go.import.settings.migrated" value="true" />
+    <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/web-client/src/components/search-results/result-row" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.path.for.package.tslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/web-client/src/components/search-results/result-row" />
+      <recent name="$PROJECT_DIR$/web-client/src/components/search-results/nothing-found" />
+      <recent name="$PROJECT_DIR$/test-repo" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="go build github.com/remipassmoilesel/go-experiments/gitsearch" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+      <module name="gitsearch" />
+      <working_directory value="$PROJECT_DIR$" />
+      <parameters value="search" />
+      <kind value="PACKAGE" />
+      <filePath value="$PROJECT_DIR$/main.go" />
+      <package value="github.com/remipassmoilesel/go-experiments/gitsearch" />
+      <directory value="$PROJECT_DIR$/" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="13e4a99b-3b08-4dc3-806d-36603e7b073c" name="Default Changelist" comment="" />
+      <created>1586118716313</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1586118716313</updated>
+      <workItem from="1586118717544" duration="9013000" />
+      <workItem from="1586154020823" duration="4722000" />
+      <workItem from="1586508035868" duration="3432000" />
+      <workItem from="1586521420945" duration="2031000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ORDER">
+      <list>
+        <option value="0" />
+        <option value="2" />
+        <option value="3" />
+        <option value="1" />
+      </list>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/test-repo" />
+    </ignored-roots>
+  </component>
+  <component name="VgoProject">
+    <integration-enabled>true</integration-enabled>
+    <proxy>direct</proxy>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="455" y="102" width="1004" height="839" key="#GOROOT" timestamp="1586118727176">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state x="455" y="102" width="1004" height="839" key="#GOROOT/0.0.1920.1043/0.0.1920.1043@0.0.1920.1043" timestamp="1586118727176" />
+    <state x="455" y="102" width="1004" height="839" key="#Go_Modules_(vgo)" timestamp="1586118738617">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state x="455" y="102" width="1004" height="839" key="#Go_Modules_(vgo)/0.0.1920.1043/0.0.1920.1043@0.0.1920.1043" timestamp="1586118738617" />
+    <state x="418" y="174" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1586127775780">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state x="418" y="174" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1043/0.0.1920.1043@0.0.1920.1043" timestamp="1586127775780" />
+    <state x="642" y="310" width="630" height="423" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1586125933680">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state x="642" y="310" width="630" height="423" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1043/0.0.1920.1043@0.0.1920.1043" timestamp="1586125933680" />
+    <state x="643" y="259" width="628" height="526" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1586508401922">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state x="643" y="259" width="628" height="526" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1920.1043@0.0.1920.1043" timestamp="1586508401922" />
+    <state x="693" y="225" width="528" height="594" key="FileChooserDialogImpl" timestamp="1586157126050">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state x="693" y="225" width="528" height="594" key="FileChooserDialogImpl/0.0.1920.1043/0.0.1920.1043@0.0.1920.1043" timestamp="1586157126050" />
+    <state width="1864" height="261" key="GridCell.Tab.0.bottom" timestamp="1586128315168">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state width="1864" height="261" key="GridCell.Tab.0.bottom/0.0.1920.1043/0.0.1920.1043@0.0.1920.1043" timestamp="1586128315168" />
+    <state width="1864" height="261" key="GridCell.Tab.0.center" timestamp="1586128315167">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state width="1864" height="261" key="GridCell.Tab.0.center/0.0.1920.1043/0.0.1920.1043@0.0.1920.1043" timestamp="1586128315167" />
+    <state width="1864" height="261" key="GridCell.Tab.0.left" timestamp="1586128315167">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state width="1864" height="261" key="GridCell.Tab.0.left/0.0.1920.1043/0.0.1920.1043@0.0.1920.1043" timestamp="1586128315167" />
+    <state width="1864" height="261" key="GridCell.Tab.0.right" timestamp="1586128315167">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state width="1864" height="261" key="GridCell.Tab.0.right/0.0.1920.1043/0.0.1920.1043@0.0.1920.1043" timestamp="1586128315167" />
+    <state width="1864" height="393" key="GridCell.Tab.1.bottom" timestamp="1586128315160">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state width="1864" height="393" key="GridCell.Tab.1.bottom/0.0.1920.1043/0.0.1920.1043@0.0.1920.1043" timestamp="1586128315160" />
+    <state width="1864" height="393" key="GridCell.Tab.1.center" timestamp="1586128315159">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state width="1864" height="393" key="GridCell.Tab.1.center/0.0.1920.1043/0.0.1920.1043@0.0.1920.1043" timestamp="1586128315159" />
+    <state width="1864" height="393" key="GridCell.Tab.1.left" timestamp="1586128315159">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state width="1864" height="393" key="GridCell.Tab.1.left/0.0.1920.1043/0.0.1920.1043@0.0.1920.1043" timestamp="1586128315159" />
+    <state width="1864" height="393" key="GridCell.Tab.1.right" timestamp="1586128315160">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state width="1864" height="393" key="GridCell.Tab.1.right/0.0.1920.1043/0.0.1920.1043@0.0.1920.1043" timestamp="1586128315160" />
+    <state x="456" y="157" key="SettingsEditor" timestamp="1586521634207">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state x="456" y="157" key="SettingsEditor/0.0.1920.1043@0.0.1920.1043" timestamp="1586521634207" />
+    <state x="570" y="136" width="774" height="772" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1586510389542">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state x="570" y="136" width="774" height="772" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.0.1920.1043@0.0.1920.1043" timestamp="1586510389542" />
+    <state x="538" y="234" key="run.anything.popup" timestamp="1586157356573">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state x="538" y="234" key="run.anything.popup/0.0.1920.1043/0.0.1920.1043@0.0.1920.1043" timestamp="1586157356573" />
+    <state x="623" y="230" width="672" height="678" key="search.everywhere.popup" timestamp="1586522154572">
+      <screen x="0" y="0" width="1920" height="1043" />
+    </state>
+    <state x="623" y="230" width="672" height="678" key="search.everywhere.popup/0.0.1920.1043@0.0.1920.1043" timestamp="1586522154572" />
+  </component>
+</project>
