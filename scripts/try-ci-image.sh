@@ -2,7 +2,4 @@
 
 IMAGE_NAME="registry.gitlab.com/remipassmoilesel/gitsearch/ci-image:0.2"
 
-cd scripts/ci-image
-
-docker build . -t $IMAGE_NAME
-docker push $IMAGE_NAME
+docker run -v $(pwd):/build:rw -ti $IMAGE_NAME /bin/bash

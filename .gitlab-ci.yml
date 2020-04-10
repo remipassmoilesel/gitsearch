@@ -1,4 +1,4 @@
-image: registry.gitlab.com/remipassmoilesel/gitsearch/ci-image:0.1
+image: registry.gitlab.com/remipassmoilesel/gitsearch/ci-image:0.2
 
 variables:
   GOCACHE: "$CI_PROJECT_DIR/.go-cache"
