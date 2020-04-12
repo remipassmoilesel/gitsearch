@@ -6,7 +6,7 @@
   "scripts": {
     "develop": "concurrently -r \"npm:type-check:watch\" \"npm:start\"",
     "start": "node start.js",
-    "build": "npm run type-check && parcel build ./src/index.html --public-url '/'",
+    "build": "npm run type-check && parcel build ./src/index.html --public-url '/' --no-source-maps",
     "prettify": "prettier --write './src/**/*.{ts,tsx}'",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -40,12 +40,12 @@
     "@fortawesome/react-fontawesome": "^0.1.9",
     "@types/highlight.js": "^9.12.3",
     "@types/react-highlight": "^0.12.2",
+    "axios": "^0.19.2",
     "babel-plugin-transform-runtime": "^6.23.0",
     "bootstrap-scss": "4.4.1",
     "highlight.js": "^9.18.1",
     "react": "^16.8.6",
-    "react-dom": "^16.8.6",
-    "react-highlight": "^0.12.0"
+    "react-dom": "^16.8.6"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",

@@ -1,18 +1,29 @@
-import {SearchService} from "./SearchService";
-import {ErrorService} from "./ErrorService";
+import {IndexService} from "./index/IndexService";
+import {ErrorService} from "./ui/ErrorService";
+import {HttpClient} from "./clients/HttpClient";
+import {UiMessageService} from "./ui/UiMessageService";
+import {RepositoryService} from "./repo/RepositoryService";
 
 export interface ServiceMap {
-    search: SearchService;
     error: ErrorService;
+    repository: RepositoryService;
+    index: IndexService;
+    uiMessages: UiMessageService;
 }
 
 let services: ServiceMap | undefined;
 
 export function servicesMap(): ServiceMap {
     if (!services) {
+        const uiMessages = new UiMessageService();
+        const error = new ErrorService(uiMessages);
+        const index = new IndexService(HttpClient, error);
+        const repository = new RepositoryService(HttpClient, error);
         services = {
-            search: new SearchService(),
-            error: new ErrorService()
+            error,
+            repository,
+            index,
+            uiMessages
         }
     }
     return services;

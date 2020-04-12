@@ -11,10 +11,9 @@ require (
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
-	github.com/pkg/errors v0.8.1
-	github.com/remyoudompheng/bigfft v0.0.0-20190728182440-6a916e37a237 // indirect
+	github.com/pkg/errors v0.9.1
+	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
 	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect
 	github.com/urfave/cli/v2 v2.2.0
-	go.etcd.io/bbolt v1.3.4
 	gopkg.in/src-d/go-git.v4 v4.13.1
 )

@@ -1,0 +1,11 @@
+
+.gs-search-results {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  padding: 2vmin;
+
+  overflow-x: auto;
+  overflow-y: scroll;
+}

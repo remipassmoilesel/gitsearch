@@ -1,4 +1,9 @@
-.gs-container {
-  padding: 0.5em;
-  margin: 0.5em;
+.gs-app-container {
+  display: flex;
+  flex-direction: column;
+
+  flex-grow: 1;
+
+  max-width: 100%;
+  max-height: 100%;
 }

@@ -10,7 +10,7 @@ type GitHelper struct {
 
 type FileIterator func(commit *object.Commit, file *object.File) error
 
-func (s *GitHelper) ForEachFiles(path string, iterator FileIterator) error {
+func (s *GitHelper) ForEachFiles(path string, maxDepth int, iterator FileIterator) error {
 	repo, err := git.PlainOpen(path)
 	if err != nil {
 		return err
@@ -21,38 +21,30 @@ func (s *GitHelper) ForEachFiles(path string, iterator FileIterator) error {
 		return err
 	}
 
-	commit, err := repo.CommitObject(head.Hash())
+	firstCommit, err := repo.CommitObject(head.Hash())
 	if err != nil {
 		return err
 	}
 
-	commitIter, err := repo.Log(&git.LogOptions{From: commit.Hash})
+	commitIter, err := repo.Log(&git.LogOptions{From: firstCommit.Hash})
 	if err != nil {
 		return err
 	}
 
-	err = commitIter.ForEach(func(commit *object.Commit) error {
+	depth := 0
+	commit := firstCommit
+	for commit != nil && depth <= maxDepth {
 		tree, err := commit.Tree()
 		if err != nil {
 			return err
 		}
 
 		err = tree.Files().ForEach(func(file *object.File) error {
-			err = iterator(commit, file)
-			if err != nil {
-				return err
-			}
-			return nil
+			return iterator(commit, file)
 		})
 
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-
-	if err != nil {
-		return err
+		depth++
+		commit, err = commitIter.Next()
 	}
 	return nil
 }

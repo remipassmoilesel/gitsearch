@@ -1,4 +1,4 @@
-image: registry.gitlab.com/remipassmoilesel/gitsearch/ci-image:0.2
+image: registry.gitlab.com/remipassmoilesel/gitsearch/ci-image:0.3
 
 variables:
   GOCACHE: "$CI_PROJECT_DIR/.go-cache"
@@ -14,8 +14,17 @@ cache:
 stages:
   - build
 
-build:
+build before merge:
   stage: build
   script:
     - ./scripts/ci.sh
+  only:
+    - merge_requests
+
+build master:
+  stage: build
+  script:
+    - ./scripts/ci.sh
+  only:
+    - master
 
