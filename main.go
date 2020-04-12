@@ -1,10 +1,9 @@
 package main
 
 import (
-	"github.com/urfave/cli/v2"
+	"fmt"
 	"log"
 	"os"
-	"strings"
 )
 
 func main() {
@@ -20,54 +19,21 @@ func applyCommand(args []string) error {
 		return err
 	}
 
-	commandHandler, err := NewCommandHandler(config)
+	index, err := NewIndex(config)
 	if err != nil {
 		return err
 	}
-	defer commandHandler.Destroy()
+	defer closeIndex(index)
 
-	app := &cli.App{
-		Commands: []*cli.Command{
-			{
-				Name:    "index",
-				Aliases: []string{"i"},
-				Usage:   "Index commands",
-				Subcommands: []*cli.Command{
-					{
-						Name:  "clean",
-						Usage: "clean nearest index data",
-						Action: func(c *cli.Context) error {
-							return commandHandler.CleanIndex()
-						},
-					},
-					{
-						Name:  "build",
-						Usage: "build nearest index",
-						Action: func(c *cli.Context) error {
-							return commandHandler.BuildIndex()
-						},
-					},
-				},
-			},
-			{
-				Name:    "search",
-				Aliases: []string{"s"},
-				Usage:   "Search command",
-				Action: func(context *cli.Context) error {
-					query := strings.Join(context.Args().Slice(), " ")
-					return commandHandler.Search(query)
-				},
-			},
-			{
-				Name:    "web",
-				Aliases: []string{"w"},
-				Usage:   "Start web server",
-				Action: func(context *cli.Context) error {
-					return commandHandler.StartServer()
-				},
-			},
-		},
+	server := NewHttpServer(config, index)
+	cliParser := NewCliParser(config, index, server)
+
+	return cliParser.applyCommand(args)
+}
+
+func closeIndex(index Index) {
+	err := index.Close()
+	if err != nil {
+		fmt.Println("Error while closing index: ", err)
 	}
-
-	return app.Run(args)
 }

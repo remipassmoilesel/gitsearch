@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-IMAGE_NAME="registry.gitlab.com/remipassmoilesel/gitsearch/ci-image:0.2"
+IMAGE_NAME="registry.gitlab.com/remipassmoilesel/gitsearch/ci-image:0.3"
 
 cd scripts/ci-image
 

@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/pkg/errors"
 	"os"
+	"os/user"
 	"path"
 )
 
@@ -13,8 +14,14 @@ type Config struct {
 }
 
 type RepositoryContext struct {
-	Path     string
+	// Path to the target repository
+	Path string
+	// Number of commit to inspect
 	MaxDepth int
+	// Current username
+	Username string
+	// Current host name
+	Hostname string
 }
 
 type WebConfig struct {
@@ -25,19 +32,15 @@ type WebConfig struct {
 var DEFAULT_LISTEN_ADDRESS = "127.0.0.1:7777"
 
 func LoadConfig() (Config, error) {
-	nearestGitRepo, err := getNearestRepoPath()
-	if err != nil {
-		return *new(Config), err
-	}
 
 	dataRootPath, err := getDataRootPath()
 	if err != nil {
 		return *new(Config), err
 	}
 
-	repoContext := RepositoryContext{
-		Path:     nearestGitRepo,
-		MaxDepth: 1000,
+	repoContext, err := getRepositoryContext()
+	if err != nil {
+		return *new(Config), err
 	}
 
 	port := getListenAddress()
@@ -55,7 +58,7 @@ func LoadConfig() (Config, error) {
 	return config, err
 }
 
-// Return path of firectory where gitsearch write data
+// Return path of directory where gitsearch write data
 func getDataRootPath() (string, error) {
 	envPath := os.Getenv("GITSEARCH_HOME")
 	if len(envPath) > 0 {
@@ -68,6 +71,31 @@ func getDataRootPath() (string, error) {
 	}
 
 	return path.Join(home, ".gitsearch"), nil
+}
+
+func getRepositoryContext() (RepositoryContext, error) {
+	nearestGitRepo, err := getNearestRepoPath()
+	if err != nil {
+		return *new(RepositoryContext), err
+	}
+
+	currentUser, err := user.Current()
+	if err != nil {
+		return *new(RepositoryContext), err
+	}
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		return *new(RepositoryContext), err
+	}
+
+	context := RepositoryContext{
+		Path:     nearestGitRepo,
+		MaxDepth: 5,
+		Username: currentUser.Username,
+		Hostname: hostname,
+	}
+	return context, nil
 }
 
 // Searching from the current working directory, get path of nearest git repository

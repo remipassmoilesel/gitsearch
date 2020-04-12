@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/blevesearch/bleve"
-	"github.com/blevesearch/bleve/document"
+	"github.com/blevesearch/bleve/search"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"os"
 	"path"
+	"time"
 )
 
 type Index struct {
@@ -30,9 +31,19 @@ type IndexedFile struct {
 	Path string
 }
 
+type SearchResult struct {
+	Query       string
+	TookSeconds float64
+	Matches     []SearchMatch
+}
+
 type SearchMatch struct {
-	File    IndexedFile
-	Matches map[string][]string
+	File      IndexedFile
+	Fragments []string
+}
+
+type IndexOperationResult struct {
+	TookSeconds float64
 }
 
 func NewIndex(config Config) (Index, error) {
@@ -64,74 +75,88 @@ func (s *Index) Close() error {
 	return s.internalIndex.Close()
 }
 
-func (s *Index) Build() error {
-	err := s.git.ForEachFiles(s.config.Repository.Path, func(commit *object.Commit, file *object.File) error {
-		content, err := file.Contents()
-		if err != nil {
-			content = fmt.Sprintf("Error %s", err)
+func (s *Index) Build() (IndexOperationResult, error) {
+	start := time.Now()
+	fileHandler := func(commit *object.Commit, file *object.File) error {
+		content, ierr := file.Contents()
+		if ierr == nil {
+			doc := IndexedFile{
+				Id:      indexedFileId(file),
+				Hash:    file.Hash.String(),
+				Commit:  commit.Hash.String(),
+				Content: content,
+				Path:    file.Name,
+			}
+			ierr = s.internalIndex.Index(doc.Id, doc)
 		}
-		doc := IndexedFile{
-			Id:      indexedFileId(file),
-			Hash:    file.Hash.String(),
-			Commit:  commit.Hash.String(),
-			Content: content,
-			Path:    file.Name,
-		}
-		err = s.internalIndex.Index(doc.Id, doc)
-		if err != nil {
-			fmt.Println("indexing error: ", err)
+		if ierr != nil {
+			fmt.Println("indexing error: ", ierr)
 		}
 		return nil
-	})
-	if err != nil {
-		return errors.Wrap(err, "indexing error")
 	}
+	err := s.git.ForEachFiles(s.config.Repository.Path, s.config.Repository.MaxDepth, fileHandler)
 
-	return err
+	tookSec := time.Since(start).Seconds()
+	response := IndexOperationResult{TookSeconds: tookSec}
+	return response, err
 }
 
-func (s *Index) Search(query string) ([]SearchMatch, error) {
-	bQuery := bleve.NewQueryStringQuery(query)
-	searchRequest := bleve.NewSearchRequest(bQuery)
-	searchRequest.Highlight = bleve.NewHighlight() // can be html highlight
+func (s *Index) Clean() (IndexOperationResult, error) {
+	start := time.Now()
+	var err error
+
+	if _, ferr := os.Stat(s.indexDataPath); ferr == nil {
+		err = os.RemoveAll(s.indexDataPath)
+	}
+
+	tookSec := time.Since(start).Seconds()
+	response := IndexOperationResult{TookSeconds: tookSec}
+	return response, err
+}
+
+func (s *Index) Search(textQuery string) (SearchResult, error) {
+	start := time.Now()
+
+	query := bleve.NewQueryStringQuery(textQuery)
+	searchRequest := bleve.NewSearchRequest(query)
+	searchRequest.Size = 100
+	searchRequest.Fields = []string{"*"} // return all fields in results
+	searchRequest.Highlight = bleve.NewHighlightWithStyle("html")
 	searchResult, err := s.internalIndex.Search(searchRequest)
 
 	if err != nil {
-		return []SearchMatch{}, errors.Wrap(err, "search error")
+		return *new(SearchResult), errors.Wrap(err, "search error")
 	}
 
-	matches := make([]SearchMatch, searchResult.Hits.Len())
-	for index, hit := range searchResult.Hits {
-		doc, err := s.internalIndex.Document(hit.ID)
-		if err != nil {
-			fmt.Println("error while fetching document " + hit.ID)
-			continue
+	var resultMatches []SearchMatch
+	for _, hit := range searchResult.Hits {
+		indexedFile := hitToIndexedFile(hit)
+
+		fragments := []string{}
+		for _, frags := range hit.Fragments {
+			fragments = append(fragments, frags...)
 		}
-		indexedFile := bleveDocumentToIndexedFile(doc)
+
 		match := SearchMatch{
-			File:    indexedFile,
-			Matches: hit.Fragments,
+			File:      indexedFile,
+			Fragments: fragments,
 		}
-		matches[index] = match
+
+		resultMatches = append(resultMatches, match)
 	}
 
-	return matches, nil
+	tookSec := time.Since(start).Seconds()
+	response := SearchResult{Query: textQuery, TookSeconds: tookSec, Matches: resultMatches}
+	return response, err
 }
 
-func (s *Index) Clean() error {
-	if _, ferr := os.Stat(s.indexDataPath); ferr == nil {
-		return os.RemoveAll(s.indexDataPath)
-	}
-	return nil
-}
-
-func bleveDocumentToIndexedFile(document *document.Document) IndexedFile {
+func hitToIndexedFile(document *search.DocumentMatch) IndexedFile {
 	return IndexedFile{
-		Id:      string(document.Fields[0].Value()),
-		Hash:    string(document.Fields[1].Value()),
-		Commit:  string(document.Fields[2].Value()),
-		Content: string(document.Fields[3].Value()),
-		Path:    string(document.Fields[4].Value()),
+		Id:      document.Fields["Id"].(string),
+		Hash:    document.Fields["Hash"].(string),
+		Commit:  document.Fields["Commit"].(string),
+		Content: document.Fields["Content"].(string),
+		Path:    document.Fields["Path"].(string),
 	}
 }
 

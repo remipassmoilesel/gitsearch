@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {ChangeEvent, Component, ReactNode} from 'react'
+import {ChangeEvent, Component, KeyboardEvent, ReactNode} from 'react'
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faSearch} from '@fortawesome/free-solid-svg-icons'
 
@@ -33,6 +33,7 @@ export class SearchBar extends Component<Props, State> {
                        value={this.state.query}
                        onChange={this.onUserInput}
                        className="form-control"
+                       onKeyDown={this.onKeyDown}
                        placeholder="Search ..."/>
                 <div className="input-group-append">
                     <button className="btn btn-primary" onClick={this.onSearch}>
@@ -48,6 +49,12 @@ export class SearchBar extends Component<Props, State> {
     };
 
     private onSearch = () => {
-        this.props.onSearch({query: ""})
+        this.props.onSearch({query: this.state.query})
+    };
+
+    private onKeyDown = (ev: KeyboardEvent<HTMLInputElement>) => {
+        if (ev.key === 'Enter') {
+            this.props.onSearch({query: this.state.query})
+        }
     };
 }

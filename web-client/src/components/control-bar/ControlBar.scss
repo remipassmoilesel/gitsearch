@@ -1,0 +1,15 @@
+.gs-control-bar {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+
+  padding: 2vmin;
+
+  button {
+    margin-left: 1em;
+  }
+
+  .icon {
+    margin-right: 0.5em;
+  }
+}

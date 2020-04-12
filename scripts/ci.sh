@@ -2,26 +2,23 @@
 
 set -e
 
+PREFIX=" 👣 👣 👣 "
+
 echo ""
-echo "Go format, build, tests"
+echo "${PREFIX} Go format, build, tests"
 echo ""
 
 go fmt
 go build
-go test
+go test -race
 
 echo ""
-echo "Web client build"
+echo "${PREFIX} Web client build"
 echo ""
 
 cd web-client
 yarn install
 yarn build
+#yarn test
 
-echo ""
-echo "Packaging"
-echo ""
-
-cd ..
-tar -cvf web-client.tar web-client/dist
-# TODO: package app with web client
+# TODO: package app and web client
