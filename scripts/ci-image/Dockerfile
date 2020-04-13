@@ -11,3 +11,5 @@ RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
 
 RUN npm i -g yarn
 
+RUN apt-get install -y git
+

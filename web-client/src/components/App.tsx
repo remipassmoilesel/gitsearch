@@ -6,7 +6,6 @@ import {SearchBar, SearchEvent} from "./search-bar/SearchBar";
 import {servicesMap} from "../services/service-factory";
 import {SearchResult} from "../services/index/SearchResult";
 import {ControlBar} from "./control-bar/ControlBar";
-import {MessageBanner} from "./control-bar/message-banner/MessageBanner";
 import './App.scss'
 
 interface State {
@@ -38,8 +37,8 @@ export class App extends Component<{}, State> {
     private onSearch = (ev: SearchEvent) => {
         this.services.index.search(ev.query)
             .then(res => {
-                this.setState({lastResponse: res})
-                this.services.uiMessages.info(`Search took ${res.TookSeconds} seconds`)
+                this.setState({lastResponse: res});
+                this.services.uiMessages.info(`Search took ${res.TookUs} μs`);
             })
             .catch(err => this.services.error.onError(err))
     }

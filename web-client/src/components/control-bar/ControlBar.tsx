@@ -25,7 +25,6 @@ export class ControlBar extends Component<{}, State> {
         const isProcessing = this.state.processing;
         return (
             <div className="gs-control-bar">
-
                 <button onClick={this.buildIndex} disabled={isProcessing} className="btn btn-primary">
                     <FontAwesomeIcon icon={faCog} className="icon"/>Build index
                 </button>
@@ -40,14 +39,14 @@ export class ControlBar extends Component<{}, State> {
     private buildIndex = () => {
         this.setState({processing: true});
         this.services.index.buildIndex()
-            .then(res => this.services.uiMessages.info(`Build took ${res.TookSeconds} seconds`))
+            .then(res => this.services.uiMessages.info(`Build took ${res.TookSeconds} seconds, ${res.Files} files indexed`))
             .finally(() => this.setState({processing: false}));
     };
 
     private cleanIndex = () => {
         this.setState({processing: true});
         this.services.index.cleanIndex()
-            .then(res => this.services.uiMessages.info(`Clean took ${res.TookSeconds} seconds`))
+            .then(res => this.services.uiMessages.info(`Clean took ${res.TookMillis} ms`))
             .finally(() => this.setState({processing: false}));
     };
 }

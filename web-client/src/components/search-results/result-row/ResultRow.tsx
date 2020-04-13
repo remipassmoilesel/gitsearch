@@ -46,7 +46,7 @@ export class ResultRow extends Component<Props, {}> {
                     <div>Path: {match.File.Path}</div>
                     <div className="flex-grow-1">&nbsp;</div>
                     <div>Commit: {match.File.Commit.substr(0, 15)}</div>
-                    {/*TODO: add date*/}
+                    {/*TODO: add date and more*/}
                 </div>
                 <div className="card-body">
                     <pre>

@@ -1,7 +1,7 @@
 import {SearchResult} from "./SearchResult";
 import {ErrorService} from "../ui/ErrorService";
-import {IndexOperationResult} from "./IndexOperationResult";
 import {HttpClient} from "../clients/HttpClient";
+import {BuildOperationResult, CleanOperationResult} from "./IndexOperationResult";
 
 export class IndexService {
 
@@ -17,8 +17,8 @@ export class IndexService {
             })
     }
 
-    public async buildIndex(): Promise<IndexOperationResult> {
-        return this.http.post<IndexOperationResult>(`/index/build`)
+    public async buildIndex(): Promise<BuildOperationResult> {
+        return this.http.post<BuildOperationResult>(`/index/build`)
             .then(res => res.data)
             .catch(err => {
                 this.error.onError(err);
@@ -26,8 +26,8 @@ export class IndexService {
             })
     }
 
-    public async cleanIndex(): Promise<IndexOperationResult> {
-        return this.http.post<IndexOperationResult>(`/index/clean`)
+    public async cleanIndex(): Promise<CleanOperationResult> {
+        return this.http.post<CleanOperationResult>(`/index/clean`)
             .then(res => res.data)
             .catch(err => {
                 this.error.onError(err);
