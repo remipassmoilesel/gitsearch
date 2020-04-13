@@ -1,6 +1,6 @@
 export interface SearchResult {
     Query: string;
-    TookSeconds: number;
+    TookUs: number;
     Matches: SearchMatch[];
 }
 

@@ -4,18 +4,20 @@ import (
 	"fmt"
 	"os/exec"
 	"runtime"
-	"strconv"
+	"strings"
 	"time"
 )
 
 type CliHandlers struct {
-	config Config
-	index  Index
-	server HttpServer
+	config  Config
+	index   Index
+	server  HttpServer
+	display CliDisplay
 }
 
 func NewCliHandlers(config Config, index Index, server HttpServer) CliHandlers {
-	return CliHandlers{config, index, server}
+	display := CliDisplay{config}
+	return CliHandlers{config, index, server, display}
 }
 
 func (s *CliHandlers) BuildIndex() error {
@@ -24,7 +26,7 @@ func (s *CliHandlers) BuildIndex() error {
 		return err
 	}
 
-	fmt.Println("Index build took ", res.TookSeconds)
+	s.display.IndexClean(res)
 	return err
 }
 
@@ -34,21 +36,31 @@ func (s *CliHandlers) CleanIndex() error {
 		return err
 	}
 
-	fmt.Println("Index clean took ", res.TookSeconds)
+	s.display.IndexBuild(res)
 	return err
 }
 
 func (s *CliHandlers) Search(query string) error {
-	res, err := s.index.Search(query)
+	repoUpToDate, err := s.index.IsUpToDate()
 	if err != nil {
 		return err
 	}
 
-	// TODO: improve display
-	for index, match := range res.Matches {
-		fmt.Println(strconv.Itoa(index) + ": " + match.File.Path)
+	if !repoUpToDate {
+		fmt.Println("Updating index ...")
+		res, err := s.index.Build()
+		if err != nil {
+			return err
+		}
+		fmt.Println(fmt.Sprintf("Index build in %v seconds", res.TookSeconds))
 	}
-	fmt.Println("Search took ", res.TookSeconds)
+
+	res, err := s.index.Search(query, 5, OutputAnsi)
+	if err != nil {
+		return err
+	}
+
+	s.display.Search(res)
 	return nil
 }
 
@@ -58,7 +70,8 @@ func (s *CliHandlers) StartServer() error {
 		time.Sleep(500 * time.Millisecond)
 		openBrowser(serviceUrl)
 	}()
-	fmt.Println("Listenning on " + serviceUrl)
+
+	s.display.StartServer(serviceUrl)
 	return s.server.Start()
 }
 
@@ -79,4 +92,12 @@ func openBrowser(url string) {
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func leftPad(s string, padStr string, pLen int) string {
+	return strings.Repeat(padStr, pLen) + s
+}
+
+func rightPad(s string, padStr string, pLen int) string {
+	return s + strings.Repeat(padStr, pLen)
 }

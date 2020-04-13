@@ -27,7 +27,7 @@ func (s *HttpHandlers) CleanIndex(w http.ResponseWriter, r *http.Request) {
 
 func (s *HttpHandlers) Search(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
-	results, err := s.index.Search(query)
+	results, err := s.index.Search(query, 50, OutputHtml)
 	jsonResponse(w, results, err)
 }
 
