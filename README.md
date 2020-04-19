@@ -25,6 +25,11 @@ Show help for commands or sub commands:
 
 ## Development
 
+You will need pkger in your PATH:
+
+    $ go get github.com/markbates/pkger/cmd/pkger
+
+
 Build (Linux, Mac only):
 
     $ ./scripts/ci.sh
