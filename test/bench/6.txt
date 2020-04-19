@@ -1,0 +1,5 @@
+$ gitsearch i b
+
+🔎 Gitsearch ⚡
+
+Indexed 39932/26036 files in 22.678367358 seconds
