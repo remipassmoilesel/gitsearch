@@ -6,6 +6,7 @@ import (
 	"github.com/remipassmoilesel/gitsearch/config"
 	"github.com/remipassmoilesel/gitsearch/http"
 	"github.com/remipassmoilesel/gitsearch/index"
+	"github.com/urfave/cli/v2"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -25,12 +26,11 @@ func NewCliHandlers(gsConfig config.Config, gsIndex index.Index, server http.Htt
 }
 
 func (s *CliHandlers) BuildIndex() error {
-	res, err := s.index.Build()
+	err := s.updateIndex()
 	if err != nil {
 		return err
 	}
 
-	s.display.IndexBuild(res)
 	return err
 }
 
@@ -44,13 +44,19 @@ func (s *CliHandlers) CleanIndex() error {
 	return err
 }
 
-func (s *CliHandlers) Search(query string) error {
-	err := s.checkIndex()
+func (s *CliHandlers) Search(args cli.Args) error {
+	query := strings.Join(args.Slice(), " ")
+
+	if len(query) < 1 {
+		return errors.New("query is mandatory")
+	}
+
+	err := s.updateIndex()
 	if err != nil {
 		return err
 	}
 
-	res, err := s.index.Search(query, 5, index.OutputAnsi)
+	res, err := s.index.Search(query, 10, index.OutputAnsi)
 	if err != nil {
 		return err
 	}
@@ -59,23 +65,47 @@ func (s *CliHandlers) Search(query string) error {
 	return nil
 }
 
-func (s *CliHandlers) StartServer() error {
-	err := s.checkIndex()
+func (s *CliHandlers) ShowFile(args cli.Args) error {
+	if args.Len() < 1 {
+		return errors.New("file hash or partial file hash is mandatory")
+	}
+
+	err := s.updateIndex()
 	if err != nil {
 		return err
 	}
 
-	serviceUrl := "http://" + s.config.Web.ListenAddress
+	res, err := s.index.FindDocumentById(args.Get(0))
+	if err != nil {
+		return err
+	}
+
+	s.display.ShowFile(res)
+	return nil
+}
+
+func (s *CliHandlers) StartServer() error {
+	err := s.updateIndex()
+	if err != nil {
+		return err
+	}
+
+	addr, err := s.server.GetAvailableAddress()
+	if err != nil {
+		return err
+	}
+
+	serviceUrl := "http://" + addr
 	go func() {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		openBrowser(serviceUrl)
 	}()
 
 	s.display.StartServer(serviceUrl)
-	return s.server.Start()
+	return s.server.Start(addr)
 }
 
-func (s *CliHandlers) checkIndex() error {
+func (s *CliHandlers) updateIndex() error {
 	repoUpToDate, err := s.index.IsUpToDate()
 	if err != nil {
 		return errors.Wrap(err, "cannot check if index is up to date")

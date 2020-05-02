@@ -38,6 +38,11 @@ func (s *ShardGroup) Initialize() (GroupInitResult, error) {
 		return GroupInitResult{}, errors.New("shard array must be empty")
 	}
 
+	err := os.MkdirAll(path.Dir(s.dataRootPath), 0755)
+	if err != nil {
+		return GroupInitResult{}, errors.Wrap(err, "cannot write state")
+	}
+
 	s.searchIndex = bleve.NewIndexAlias()
 
 	ch := make(chan shardInitResult)
@@ -115,27 +120,31 @@ func (s *ShardGroup) Close() error {
 }
 
 func indexMapping() *mapping.IndexMappingImpl {
-	notIndexed := bleve.NewTextFieldMapping()
-	notIndexed.Store = true
-	notIndexed.IncludeInAll = true
-	notIndexed.IncludeTermVectors = false
-	notIndexed.Analyzer = "standard" // TODO: register then use "simple"
+	primaryField := bleve.NewTextFieldMapping()
+	primaryField.Store = true
+	primaryField.IncludeInAll = true
+	primaryField.IncludeTermVectors = true
+	primaryField.Analyzer = "standard"
 
-	indexed := bleve.NewTextFieldMapping()
-	indexed.Store = true
-	indexed.IncludeInAll = true
-	indexed.IncludeTermVectors = true
-	indexed.Analyzer = "standard"
+	secondaryField := bleve.NewTextFieldMapping()
+	secondaryField.Store = true
+	secondaryField.IncludeInAll = true
+	secondaryField.IncludeTermVectors = false
+	secondaryField.Analyzer = "standard" // TODO: register then use "simple"
 
-	docMapping := bleve.NewDocumentMapping()
+	dateField := bleve.NewDateTimeFieldMapping()
 
-	docMapping.AddFieldMappingsAt("Hash", notIndexed)
-	docMapping.AddFieldMappingsAt("Commit", notIndexed)
-	docMapping.AddFieldMappingsAt("Content", indexed)
-	docMapping.AddFieldMappingsAt("Path", indexed)
+	defaultMapping := bleve.NewDocumentMapping()
+
+	defaultMapping.AddFieldMappingsAt("Content", primaryField)
+	defaultMapping.AddFieldMappingsAt("Date", dateField)
+	defaultMapping.AddFieldMappingsAt("Hash", secondaryField)
+	defaultMapping.AddFieldMappingsAt("Commit", secondaryField)
+	defaultMapping.AddFieldMappingsAt("Path", secondaryField)
+	defaultMapping.AddFieldMappingsAt("Name", secondaryField)
 
 	indexMapping := bleve.NewIndexMapping()
-	indexMapping.DefaultMapping = docMapping
+	indexMapping.DefaultMapping = defaultMapping
 	indexMapping.DefaultAnalyzer = "standard"
 	return indexMapping
 }

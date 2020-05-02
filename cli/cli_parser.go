@@ -5,7 +5,6 @@ import (
 	"github.com/remipassmoilesel/gitsearch/http"
 	"github.com/remipassmoilesel/gitsearch/index"
 	"github.com/urfave/cli/v2"
-	"strings"
 )
 
 type CliParser struct {
@@ -36,8 +35,16 @@ func (s *CliParser) ApplyCommand(args []string) error {
 				Aliases: []string{"s"},
 				Usage:   "Search command",
 				Action: func(context *cli.Context) error {
-					query := strings.Join(context.Args().Slice(), " ")
-					return s.cliHandlers.Search(query)
+					return s.cliHandlers.Search(context.Args())
+				},
+			},
+			{
+				Name:    "show-file",
+				Aliases: []string{"f"},
+				Usage:   "Show file with specified partial hash",
+				Action: func(context *cli.Context) error {
+					context.Args().Len()
+					return s.cliHandlers.ShowFile(context.Args())
 				},
 			},
 			{

@@ -6,7 +6,7 @@ import './MessageBanner.scss'
 export class MessageBanner extends Component<{}, {}> {
     public render(): ReactNode {
         return (
-            <div className="gs-message-banner" id="gs-message-banner"/>
+            <div className="gs-message-banner" id="gs-message-banner">&nbsp;</div>
         );
     }
 }

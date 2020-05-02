@@ -1,6 +1,6 @@
 export interface SearchResult {
     Query: string;
-    TookUs: number;
+    TookMs: number;
     Matches: SearchMatch[];
 }
 
@@ -12,7 +12,9 @@ export interface SearchMatch {
 export interface IndexedFile {
     Id: string
     Hash: string
+    Date: string;
     Commit: string
+    Name: string
     Content: string
     Path: string
 }

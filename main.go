@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/remipassmoilesel/gitsearch/cli"
-	config "github.com/remipassmoilesel/gitsearch/config"
+	"github.com/remipassmoilesel/gitsearch/config"
 	"github.com/remipassmoilesel/gitsearch/http"
 	"github.com/remipassmoilesel/gitsearch/index"
 	"log"

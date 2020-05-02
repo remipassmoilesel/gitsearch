@@ -30,7 +30,9 @@ func (d CliDisplay) Search(res index.SearchResult) {
 		}
 		position := fmt.Sprintf("%v  %v: ", icon, strconv.Itoa(idx+1))
 		commit := fmt.Sprintf("Commit: %v", string([]rune(match.File.Commit[0:15])))
-		header := position + match.File.Path + " - " + commit
+		date := fmt.Sprintf("Date: %v", match.File.Date)
+		id := fmt.Sprintf("Id: %v", match.File.Hash[0:15])
+		header := position + match.File.Path + " - " + commit + " - " + date + " - " + id
 
 		// body
 		fragments := strings.Join(match.Fragments, "\n\n---\n\n")
@@ -48,9 +50,21 @@ func (d CliDisplay) Search(res index.SearchResult) {
 		fmt.Println("Nothing found. ")
 	}
 
-	fmt.Println(fmt.Sprintf("Search took %v μs", res.TookUs))
+	fmt.Println(fmt.Sprintf("Search took %v ms", res.TookMs))
+}
+
+func (d CliDisplay) ShowFile(file index.IndexedFile) {
+	commit := fmt.Sprintf("Commit: %v", string([]rune(file.Commit[0:15])))
+	date := fmt.Sprintf("Date: %v", file.Date)
+	id := fmt.Sprintf("Id: %v", file.Hash[0:15])
+	header := file.Path + " - " + commit + " - " + date + " - " + id
+
+	fmt.Println(chalk.Cyan, header, chalk.Reset)
+	fmt.Println()
+	fmt.Println(file.Content)
+	fmt.Println()
 }
 
 func (d CliDisplay) StartServer(serviceUrl string) {
-	fmt.Println("Listenning on " + serviceUrl)
+	fmt.Println("Listening on " + serviceUrl)
 }

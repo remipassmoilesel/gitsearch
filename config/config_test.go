@@ -12,8 +12,8 @@ func Test_Config_LoadConfig(t *testing.T) {
 
 	assert.NotEmpty(t, config.DataRootPath)
 
-	assert.NotZero(t, config.Search.Shards)
-	assert.NotZero(t, config.Search.BatchSize)
+	assert.NotZero(t, config.Index.Shards)
+	assert.NotZero(t, config.Index.BatchSize)
 
 	assert.NotEmpty(t, config.Repository.Path)
 	assert.NotEmpty(t, config.Repository.Hostname)

@@ -3,8 +3,8 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	config "github.com/remipassmoilesel/gitsearch/config"
-	index "github.com/remipassmoilesel/gitsearch/index"
+	"github.com/remipassmoilesel/gitsearch/config"
+	"github.com/remipassmoilesel/gitsearch/index"
 	"net/http"
 )
 
@@ -30,6 +30,12 @@ func (s *HttpHandlers) CleanIndex(w http.ResponseWriter, r *http.Request) {
 func (s *HttpHandlers) Search(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 	results, err := s.index.Search(query, 50, index.OutputHtml)
+	jsonResponse(w, results, err)
+}
+
+func (s *HttpHandlers) FindDocumentById(w http.ResponseWriter, r *http.Request) {
+	hash := r.URL.Query().Get("id")
+	results, err := s.index.FindDocumentById(hash)
 	jsonResponse(w, results, err)
 }
 

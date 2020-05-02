@@ -23,7 +23,7 @@ func testIndex(t *testing.T, templateName string, batchSize int) Index {
 			Path:     path,
 			MaxDepth: 5,
 		},
-		Search: config.SearchConfig{
+		Index: config.SearchConfig{
 			Shards:    3,
 			BatchSize: batchSize,
 		},

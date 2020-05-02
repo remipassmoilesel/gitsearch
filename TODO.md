@@ -2,12 +2,8 @@
 
 1. Améliorer les tests
 
-- Amélioration des perfs:
-    - Tweak taille de batch / nbr de shaards: https://www.philipotoole.com/increasing-bleve-performance-sharding/
-    
-- Multi thread de l'init des shaard
+- Afficher correctement les markup languages
 - Répartir les commits analysés sur plusieurs jours (1 tous les deux jours ?)        
-- Lien voir le fichier
 - Bouton copier dans le presse papier la commande checkout et le path
 - Filtre tri chronologiue et anté-chrono
 
@@ -22,3 +18,4 @@
 - Enlever tous les fmt.Println()
 - Recherche "fuzzy find" sur master en ligne de commande
 - Filtre des résultat par path, par période, etc ...
+- Amélioration des perfs: Réglages fins taille de batch / nbr de shaards: https://www.philipotoole.com/increasing-bleve-performance-sharding/

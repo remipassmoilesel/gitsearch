@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Component, ReactNode} from 'react'
-import {RepositoryContext} from "../../services/repo/RepositoryContext";
-import {servicesMap} from "../../services/service-factory";
+import {RepositoryContext} from "../../../core/repo/RepositoryContext";
+import {servicesMap} from "../../../core/service-factory";
 import './ContextBanner.scss'
 
 interface State {
