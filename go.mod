@@ -13,6 +13,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/markbates/pkger v0.15.1
+	github.com/nightlyone/lockfile v1.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
 	github.com/stretchr/testify v1.4.0

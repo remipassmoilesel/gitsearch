@@ -1,4 +1,6 @@
 .idea
 web-client.tar
 gitsearch
+gitsearch-*
 pkged.go
+coverage.out

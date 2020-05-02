@@ -9,6 +9,7 @@ echo "${PREFIX} Web client build"
 echo ""
 
 cd web_client
+yarn clean
 yarn install
 yarn build
 #yarn test # TODO: test !
@@ -28,5 +29,16 @@ echo ""
 
 export GS_TEST_DATA="$(pwd)/test/data"
 go fmt ./...
-go test ./... -race
+go test ./... -race -cover
 go build
+
+export GOARCH=amd64
+
+export GOOS=linux
+go build -o gitsearch-linux
+
+export GOOS=darwin
+go build -o gitsearch-macos
+
+export GOOS=windows
+go build -o gitsearch-windows

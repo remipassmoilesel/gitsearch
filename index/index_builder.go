@@ -13,7 +13,7 @@ type IndexBuilder struct {
 	index              *Index
 	config             config.Config
 	git                utils.GitReader
-	state              IndexState
+	state              *IndexState
 	hashStore          hashStore
 	repositoryMaxDepth int
 }
@@ -23,7 +23,7 @@ func NewIndexBuilder(index *Index) IndexBuilder {
 		index:     index,
 		config:    index.config,
 		git:       index.git,
-		state:     index.state,
+		state:     &index.state,
 		hashStore: hashStore{},
 	}
 }
@@ -51,17 +51,18 @@ func (s *IndexBuilder) Build() (BuildOperationResult, error) {
 
 	indexedFiles := 0
 	totalFiles := 0
-	batchSize := s.config.Search.BatchSize
+	batchSize := s.config.Index.BatchSize
 	batchNumber := 0
 	buffer := []IndexedFile{}
 
 	ch := make(chan batchIndexResult)
 
+	state := *(s.state)
 	for _, commit := range commits {
-		if s.state.ContainsCommit(commit) {
+		if state.ContainsCommit(commit) {
 			continue
 		}
-		s.state.Append(commit)
+		state.AppendCommit(commit)
 
 		commitFiles, err := s.git.GetCommitFiles(commit)
 		if err != nil {
@@ -111,7 +112,7 @@ func (s *IndexBuilder) Build() (BuildOperationResult, error) {
 		}
 	}
 
-	err = s.state.Write()
+	err = state.Write()
 	if err != nil {
 		return BuildOperationResult{}, err
 	}
@@ -179,6 +180,7 @@ func (s *IndexBuilder) commitFilesToIndexedFiles(files []utils.CommitFile) []Ind
 		res = append(res, IndexedFile{
 			Hash:    fl.Hash,
 			Commit:  fl.Commit,
+			Date:    fl.Date,
 			Content: fl.Content,
 			Path:    fl.Path,
 			Name:    fl.Name,

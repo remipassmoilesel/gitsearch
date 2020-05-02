@@ -22,4 +22,12 @@ export const Languages: Language[] = [
     }
 ]
 
+export function languageFromFileName(path: string): string {
+    const extension = path.split('.').pop();
+    if (!extension) {
+        return '';
+    }
 
+    const language = Languages.find(lang => lang.extensions.indexOf(extension) !== -1);
+    return language?.name || '';
+}

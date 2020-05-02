@@ -6,11 +6,12 @@ import (
 	"os/user"
 	"path"
 	"runtime"
+	"strconv"
 )
 
 type Config struct {
 	DataRootPath string
-	Search       SearchConfig
+	Index        SearchConfig
 	Repository   RepositoryContext
 	Web          WebConfig
 }
@@ -33,14 +34,17 @@ type RepositoryContext struct {
 
 type WebConfig struct {
 	ListenAddress string
+	Port          int
 }
 
 var ENV_HOME = "GITSEARCH_HOME"
 var ENV_LISTEN_ADDRESS = "GITSEARCH_LISTEN_ADDRESS"
-var DEFAULT_LISTEN_ADDRESS = "127.0.0.1:7777"
+var ENV_PORT = "GITSEARCH_PORT"
+
+var DEFAULT_LISTEN_ADDRESS = "127.0.0.1"
+var DEFAULT_PORT = 7777
 
 func LoadConfig() (Config, error) {
-
 	dataRootPath, err := getDataRootPath()
 	if err != nil {
 		return *new(Config), err
@@ -52,12 +56,16 @@ func LoadConfig() (Config, error) {
 	}
 	repoContext.MaxDepth = 50
 
-	webConfig := getWebConfig()
+	webConfig, err := getWebConfig()
+	if err != nil {
+		return *new(Config), err
+	}
+
 	seachConfig := SearchConfig{Shards: runtime.NumCPU() * 4, BatchSize: 10} // TODO improve
 
 	config := Config{
 		DataRootPath: dataRootPath,
-		Search:       seachConfig,
+		Index:        seachConfig,
 		Repository:   repoContext,
 		Web:          webConfig,
 	}
@@ -65,11 +73,14 @@ func LoadConfig() (Config, error) {
 	return config, err
 }
 
-func getWebConfig() WebConfig {
-	port := getListenAddress()
-	return WebConfig{
-		ListenAddress: port,
+func getWebConfig() (WebConfig, error) {
+	address := getListenAddress()
+	port, err := getListenPort()
+	config := WebConfig{
+		ListenAddress: address,
+		Port:          port,
 	}
+	return config, err
 }
 
 // Return path of directory where gitsearch write data
@@ -133,10 +144,20 @@ func getNearestRepoPath() (string, error) {
 
 func getListenAddress() string {
 	envAddr := os.Getenv(ENV_LISTEN_ADDRESS)
-
 	if len(envAddr) > 0 {
 		return envAddr
 	}
-
 	return DEFAULT_LISTEN_ADDRESS
+}
+
+func getListenPort() (int, error) {
+	envPort := os.Getenv(ENV_PORT)
+	if len(envPort) < 1 {
+		return DEFAULT_PORT, nil
+	}
+	port, err := strconv.Atoi(envPort)
+	if err != nil {
+		return 0, errors.New("invalid port: " + envPort)
+	}
+	return port, nil
 }

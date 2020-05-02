@@ -1,18 +1,14 @@
 import * as React from 'react'
 import {Component, ReactNode} from 'react'
-import {ContextBanner} from "./context-banner/ContextBanner";
-import {SearchResults} from "./search-results/SearchResults";
-import {SearchBar, SearchEvent} from "./search-bar/SearchBar";
-import {servicesMap} from "../services/service-factory";
-import {SearchResult} from "../services/index/SearchResult";
-import {ControlBar} from "./control-bar/ControlBar";
+import {ContextBanner} from "./common/context-banner/ContextBanner";
+import {servicesMap} from "../core/service-factory";
+import {HashRouter, Route, Switch} from 'react-router-dom';
+import {SearchView} from "./search-view/SearchView";
+import {FileView} from "./file-view/FileView";
+import {MessageBanner} from "./common/message-banner/MessageBanner";
 import './App.scss'
 
-interface State {
-    lastResponse: SearchResult | undefined;
-}
-
-export class App extends Component<{}, State> {
+export class App extends Component<{}, {}> {
 
     private services = servicesMap();
 
@@ -25,21 +21,18 @@ export class App extends Component<{}, State> {
 
     public render(): ReactNode {
         return (
-            <div className="gs-app-container">
-                <ContextBanner/>
-                <SearchBar onSearch={this.onSearch}/>
-                <ControlBar/>
-                <SearchResults searchResponse={this.state.lastResponse}/>
-            </div>
+            <HashRouter>
+                <div className="gs-app-container">
+                    <ContextBanner/>
+                    <Switch>
+                        <Route path="/" exact component={SearchView}/>
+                        <Route path="/search/:query" exact component={SearchView}/>
+                        <Route path="/file/:fileId" component={FileView}/>
+                    </Switch>
+                    <MessageBanner/>
+                </div>
+            </HashRouter>
         );
     }
 
-    private onSearch = (ev: SearchEvent) => {
-        this.services.index.search(ev.query)
-            .then(res => {
-                this.setState({lastResponse: res});
-                this.services.uiMessages.info(`Search took ${res.TookUs} μs`);
-            })
-            .catch(err => this.services.error.onError(err))
-    }
 }

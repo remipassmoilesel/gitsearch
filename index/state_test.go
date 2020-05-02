@@ -3,30 +3,96 @@ package index
 import (
 	"github.com/remipassmoilesel/gitsearch/test"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"path"
 	"testing"
 )
 
-func Test_IndexState_Clean_ifNotExisting(t *testing.T) {
-	dataPath, err := test.Helper.RandomDataDir()
-	assert.NoError(t, err)
-
-	state := IndexState{path: dataPath}
-	assert.NoError(t, state.Clean())
-}
-
 func Test_IndexState_Write(t *testing.T) {
-	dir, err := test.Helper.RandomDataDir()
+	dataDir, err := test.Helper.RandomDataDir()
 	assert.NoError(t, err)
 
-	statePath := path.Join(dir, "gs-state.json")
+	statePath := path.Join(dataDir, StateFileName)
 
-	state := IndexState{path: statePath, IndexedCommits: []string{"a", "b", "c"}}
+	state := IndexStateImpl{
+		path: statePath,
+		state: &PersistedState{
+			IndexedCommits: []string{"a", "b", "c"},
+		},
+	}
 	assert.NoError(t, state.Write())
 	assert.FileExists(t, statePath)
 
-	loaded, err := LoadIndexState(statePath)
+	loaded, err := LoadIndexState(dataDir)
 	assert.NoError(t, err)
-	assert.Equal(t, statePath, loaded.path)
-	assert.Equal(t, []string{"a", "b", "c"}, loaded.IndexedCommits)
+	assert.Equal(t, statePath, loaded.Path())
+	assert.Equal(t, []string{"a", "b", "c"}, loaded.Content().IndexedCommits)
+}
+
+func Test_IndexState_LoadIndexState_ifNotExisting(t *testing.T) {
+	dataDir, err := test.Helper.RandomDataDir()
+	assert.NoError(t, err)
+
+	statePath := path.Join(dataDir, StateFileName)
+
+	state, err := LoadIndexState(dataDir)
+	assert.NoError(t, err)
+
+	assert.Equal(t, statePath, state.Path())
+
+	_, err = os.Stat(statePath)
+	assert.True(t, os.IsNotExist(err))
+}
+
+func Test_IndexState_LoadIndexState_ifExisting(t *testing.T) {
+	dataDir, err := test.Helper.RandomDataDir()
+	assert.NoError(t, err)
+
+	statePath := path.Join(dataDir, StateFileName)
+
+	state, err := LoadIndexState(dataDir)
+	assert.NoError(t, err)
+
+	_, err = os.Stat(statePath)
+	assert.True(t, os.IsNotExist(err))
+
+	state.AppendCommit("a")
+	state.AppendCommit("b")
+	state.AppendCommit("c")
+	assert.NoError(t, state.Write())
+
+	state2, err := LoadIndexState(dataDir)
+	assert.NoError(t, err)
+	assert.Equal(t, state2.Path(), state.Path())
+	assert.Equal(t, state2.Content(), state.Content())
+}
+
+func Test_IndexState_Clean_ifNotExisting(t *testing.T) {
+	dataDir, err := test.Helper.RandomDataDir()
+	assert.NoError(t, err)
+
+	statePath := path.Join(dataDir, StateFileName)
+
+	state := IndexStateImpl{path: statePath}
+	assert.NoError(t, state.Clean())
+}
+
+func Test_IndexState_Clean_ifExisting(t *testing.T) {
+	dataDir, err := test.Helper.RandomDataDir()
+	assert.NoError(t, err)
+
+	statePath := path.Join(dataDir, StateFileName)
+
+	state, err := LoadIndexState(dataDir)
+	assert.NoError(t, err)
+
+	state.AppendCommit("a")
+	state.AppendCommit("b")
+	state.AppendCommit("c")
+	err = state.Write()
+	assert.NoError(t, err)
+
+	assert.NoError(t, state.Clean())
+	_, err = os.Stat(statePath)
+	assert.True(t, os.IsNotExist(err))
 }

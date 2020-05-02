@@ -1,8 +1,8 @@
 import * as React from 'react'
 import {Component, ReactNode} from 'react'
 import {NothingFound} from "./nothing-found/NothingFound";
-import {ResultRow} from "./result-row/ResultRow";
-import {SearchResult} from "../../services/index/SearchResult";
+import {ResultCard} from "./result-card/ResultCard";
+import {SearchResult} from "../../../core/index/SearchResult";
 
 import './SearchResults.scss'
 
@@ -13,7 +13,7 @@ export interface Props {
 export class SearchResults extends Component<Props, {}> {
     public render(): ReactNode {
         const matches = this.props.searchResponse?.Matches || [];
-        const results = matches.map((match, idx) => <ResultRow match={match} key={idx}/>);
+        const results = matches.map((match, idx) => <ResultCard match={match} key={idx}/>);
         const nothingFound = matches.length < 1 && !!this.props.searchResponse;
         return (
             <div className="gs-search-results">

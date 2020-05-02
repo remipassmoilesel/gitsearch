@@ -1,6 +1,6 @@
 import {IndexService} from "./index/IndexService";
 import {ErrorService} from "./ui/ErrorService";
-import {HttpClient} from "./clients/HttpClient";
+import {HttpClient} from "./utils/HttpClient";
 import {UiMessageService} from "./ui/UiMessageService";
 import {RepositoryService} from "./repo/RepositoryService";
 

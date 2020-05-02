@@ -48,7 +48,7 @@ func Test_BuildIndex_buildShouldWriteState(t *testing.T) {
 	_, err := index.Build()
 	assert.NoError(t, err)
 
-	statePath := index.state.path
+	statePath := index.state.Path()
 	assert.FileExists(t, statePath)
 }
 

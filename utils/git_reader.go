@@ -6,6 +6,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"path/filepath"
+	"time"
 )
 
 // Warning: methods are not thread safe
@@ -18,6 +19,8 @@ type CommitFile struct {
 	Hash string
 	// Commit hash
 	Commit string
+	// Date of commit
+	Date time.Time
 	// File content
 	Content string
 	// File path
@@ -71,15 +74,16 @@ func (s *GitReader) GetCommitFiles(commitStr string) ([]CommitFile, error) {
 			return errors.Wrap(ferr, "cannot read commit file")
 		}
 
-		bundleFile := CommitFile{
+		commitFile := CommitFile{
 			Hash:    file.Hash.String(),
 			Commit:  commitStr,
+			Date:    commit.Committer.When.Local(),
 			Content: content,
 			Path:    file.Name,
 			Name:    filepath.Base(file.Name),
 		}
 
-		files = append(files, bundleFile)
+		files = append(files, commitFile)
 		return nil
 	})
 

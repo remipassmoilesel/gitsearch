@@ -1,6 +1,6 @@
-import {SearchResult} from "./SearchResult";
+import {IndexedFile, SearchResult} from "./SearchResult";
 import {ErrorService} from "../ui/ErrorService";
-import {HttpClient} from "../clients/HttpClient";
+import {HttpClient} from "../utils/HttpClient";
 import {BuildOperationResult, CleanOperationResult} from "./IndexOperationResult";
 
 export class IndexService {
@@ -34,4 +34,5 @@ export class IndexService {
                 return Promise.reject(err);
             })
     }
+
 }
