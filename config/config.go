@@ -122,7 +122,7 @@ func getRepositoryContext() (RepositoryContext, error) {
 	return context, nil
 }
 
-// Searching from the current working directory, get path of nearest git repository
+// Searching from the current working directory, find then return path of nearest git repository
 func getNearestRepoPath() (string, error) {
 	currentDir, err := os.Getwd()
 	if err != nil {

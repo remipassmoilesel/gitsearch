@@ -4,7 +4,7 @@
 # This is script must be run like this:
 #
 #   $ cd gitsearch
-#   $ ./test/coverage.sh
+#   $ ./test/_coverage.sh
 #
 
 set -e

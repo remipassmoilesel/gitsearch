@@ -14,4 +14,6 @@ ENV PATH=$PATH:$GOPATH/bin
 
 RUN npm i -g yarn \
     && apt-get install -y git \
-    && go get github.com/markbates/pkger/cmd/pkger
+    && go get github.com/markbates/pkger/cmd/pkger \
+    && go get github.com/golang/mock/mockgen
+

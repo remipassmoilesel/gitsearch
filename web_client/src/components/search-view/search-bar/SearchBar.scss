@@ -1,3 +1,12 @@
+@import "src/variables";
+
 .gs-search-bar {
   padding: 2vmin;
+}
+
+.gs-search-help {
+  font-size: 0.9em;
+  color: $secondary;
+  padding: 0 50px 10px 50px;
+  border-bottom: solid $border-color 1px;
 }

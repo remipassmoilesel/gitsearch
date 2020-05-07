@@ -1,22 +1,29 @@
 package cli
 
 import (
-	"github.com/remipassmoilesel/gitsearch/config"
-	"github.com/remipassmoilesel/gitsearch/http"
-	"github.com/remipassmoilesel/gitsearch/index"
 	"github.com/urfave/cli/v2"
+	"gitlab.com/remipassmoilesel/gitsearch/config"
+	"gitlab.com/remipassmoilesel/gitsearch/http"
+	"gitlab.com/remipassmoilesel/gitsearch/index"
 )
 
-type CliParser struct {
+type CliParserImpl struct {
 	cliHandlers CliHandlers
 }
 
-func NewCliParser(config config.Config, index index.Index, server http.HttpServer) CliParser {
+func NewCliParser(config config.Config, index index.Index, server http.HttpServer) CliParserImpl {
 	handlers := NewCliHandlers(config, index, server)
-	return CliParser{cliHandlers: handlers}
+	return CliParserImpl{cliHandlers: handlers}
 }
 
-func (s *CliParser) ApplyCommand(args []string) error {
+const (
+	FlagNumberOfResult = "number-of-results"
+	FlagQuery          = "query"
+	FlagNoPager        = "no-pager"
+	FlagHash           = "hash"
+)
+
+func (s *CliParserImpl) ApplyCommand(args []string) error {
 	app := &cli.App{
 		Name:                 "gitsearch",
 		Usage:                "🔎 Search in Git repositories ⚡",
@@ -29,22 +36,61 @@ func (s *CliParser) ApplyCommand(args []string) error {
 				Email: "r.passmoilesel@protonmail.com",
 			},
 		},
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  FlagNoPager,
+				Usage: "do not use pager to display output",
+				Value: false,
+			},
+		},
 		Commands: []*cli.Command{
 			{
 				Name:    "search",
 				Aliases: []string{"s"},
 				Usage:   "Search command",
+
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     FlagQuery,
+						Aliases:  []string{"q"},
+						Usage:    "You can search term, search \"exact terms\", include +terms, exclude -terms etc ... See: https://blevesearch.com/docs/Query-String-Query/",
+						Required: true,
+					},
+					&cli.IntFlag{
+						Name:    FlagNumberOfResult,
+						Aliases: []string{"n"},
+						Usage:   "will return at most number of results",
+						Value:   10,
+					},
+				},
 				Action: func(context *cli.Context) error {
-					return s.cliHandlers.Search(context.Args())
+					query := context.String(FlagQuery)
+					usePager := !context.Bool(FlagNoPager)
+					numberOfResults := 50
+					if context.Int(FlagNumberOfResult) > 0 {
+						numberOfResults = context.Int(FlagNumberOfResult)
+					}
+
+					return s.cliHandlers.Search(query, numberOfResults, usePager)
 				},
 			},
 			{
 				Name:    "show-file",
 				Aliases: []string{"f"},
 				Usage:   "Show file with specified partial hash",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     FlagHash,
+						Aliases:  []string{"ha"},
+						Usage:    "Hash or partial hash of file",
+						Required: true,
+					},
+				},
 				Action: func(context *cli.Context) error {
-					context.Args().Len()
-					return s.cliHandlers.ShowFile(context.Args())
+					hash := context.String(FlagHash)
+					usePager := !context.Bool(FlagNoPager)
+
+					return s.cliHandlers.ShowFile(hash, usePager)
 				},
 			},
 			{
@@ -61,11 +107,11 @@ func (s *CliParser) ApplyCommand(args []string) error {
 				Usage:   "Index commands",
 				Subcommands: []*cli.Command{
 					{
-						Name:    "build",
-						Aliases: []string{"b"},
+						Name:    "update",
+						Aliases: []string{"u"},
 						Usage:   "scan files from current git repository then index them",
 						Action: func(c *cli.Context) error {
-							return s.cliHandlers.BuildIndex()
+							return s.cliHandlers.UpdateIndex()
 						},
 					},
 					{

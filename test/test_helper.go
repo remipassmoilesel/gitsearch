@@ -37,9 +37,14 @@ func (s *TestHelper) RandomDataDir() (string, error) {
 }
 
 const (
-	REPO_SMALL = "small-repo.tar"
-	REPO_EMPTY = "empty-repo.tar"
+	REPO_SMALL          = "small-repo.tar"
+	REPO_EMPTY          = "empty-repo.tar"
+	REPO_SPACED_COMMITS = "spaced-commits.tar"
 )
+
+func allTemplates() []string {
+	return []string{REPO_EMPTY, REPO_SMALL, REPO_SPACED_COMMITS}
+}
 
 func (s *TestHelper) SampleGitRepository(templateName string) (string, error) {
 	if !s.isTemplateKnown(templateName) {
@@ -69,7 +74,7 @@ func (s *TestHelper) SampleGitRepository(templateName string) (string, error) {
 }
 
 func (s *TestHelper) isTemplateKnown(templateName string) bool {
-	allTemplates := []string{REPO_EMPTY, REPO_SMALL}
+	allTemplates := allTemplates()
 	for _, n := range allTemplates {
 		if templateName == n {
 			return true

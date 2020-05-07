@@ -1,13 +1,13 @@
 package http
 
 import (
-	"github.com/remipassmoilesel/gitsearch/config"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/remipassmoilesel/gitsearch/config"
 	"testing"
 )
 
 func Test_HttpServer_GetAvailableAddress(t *testing.T) {
-	server := HttpServer{
+	server := HttpServerImpl{
 		config: config.Config{
 			Web: config.WebConfig{
 				ListenAddress: "localhost",
@@ -22,7 +22,7 @@ func Test_HttpServer_GetAvailableAddress(t *testing.T) {
 }
 
 func Test_HttpServer_GetAvailableAddress_shouldFindAvailableAddr(t *testing.T) {
-	server := HttpServer{
+	server := HttpServerImpl{
 		config: config.Config{
 			Web: config.WebConfig{
 				ListenAddress: "localhost",
@@ -37,7 +37,7 @@ func Test_HttpServer_GetAvailableAddress_shouldFindAvailableAddr(t *testing.T) {
 }
 
 func Test_HttpServer_GetAvailableAddress_shouldFail(t *testing.T) {
-	server := HttpServer{
+	server := HttpServerImpl{
 		config: config.Config{
 			Web: config.WebConfig{
 				ListenAddress: "localhost",

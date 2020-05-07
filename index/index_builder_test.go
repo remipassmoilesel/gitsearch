@@ -1,8 +1,8 @@
 package index
 
 import (
-	"github.com/remipassmoilesel/gitsearch/test"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/remipassmoilesel/gitsearch/test"
 	"strconv"
 	"testing"
 )

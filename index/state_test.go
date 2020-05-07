@@ -1,8 +1,8 @@
 package index
 
 import (
-	"github.com/remipassmoilesel/gitsearch/test"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/remipassmoilesel/gitsearch/test"
 	"os"
 	"path"
 	"testing"
@@ -26,7 +26,7 @@ func Test_IndexState_Write(t *testing.T) {
 	loaded, err := LoadIndexState(dataDir)
 	assert.NoError(t, err)
 	assert.Equal(t, statePath, loaded.Path())
-	assert.Equal(t, []string{"a", "b", "c"}, loaded.Content().IndexedCommits)
+	assert.Equal(t, state.state.IndexedCommits, loaded.Content().IndexedCommits)
 }
 
 func Test_IndexState_LoadIndexState_ifNotExisting(t *testing.T) {
@@ -59,6 +59,7 @@ func Test_IndexState_LoadIndexState_ifExisting(t *testing.T) {
 	state.AppendCommit("a")
 	state.AppendCommit("b")
 	state.AppendCommit("c")
+
 	assert.NoError(t, state.Write())
 
 	state2, err := LoadIndexState(dataDir)

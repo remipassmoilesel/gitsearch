@@ -4,21 +4,22 @@ import (
 	"fmt"
 	"github.com/blevesearch/bleve"
 	"github.com/pkg/errors"
-	"github.com/remipassmoilesel/gitsearch/config"
-	"github.com/remipassmoilesel/gitsearch/utils"
+	"gitlab.com/remipassmoilesel/gitsearch/config"
+	git_reader "gitlab.com/remipassmoilesel/gitsearch/git_reader"
+	"gitlab.com/remipassmoilesel/gitsearch/utils"
 	"time"
 )
 
 type IndexBuilder struct {
-	index              *Index
+	index              *IndexImpl
 	config             config.Config
-	git                utils.GitReader
+	git                git_reader.GitReader
 	state              *IndexState
 	hashStore          hashStore
 	repositoryMaxDepth int
 }
 
-func NewIndexBuilder(index *Index) IndexBuilder {
+func NewIndexBuilder(index *IndexImpl) IndexBuilder {
 	return IndexBuilder{
 		index:     index,
 		config:    index.config,
@@ -29,9 +30,10 @@ func NewIndexBuilder(index *Index) IndexBuilder {
 }
 
 type BuildOperationResult struct {
-	TookSeconds float64
-	Files       int
-	TotalFiles  int
+	TookSeconds  float64
+	Files        int
+	TotalFiles   int
+	OldestCommit time.Time
 }
 
 type batchIndexResult struct {
@@ -41,10 +43,39 @@ type batchIndexResult struct {
 	took       float64
 }
 
-func (s *IndexBuilder) Build() (BuildOperationResult, error) {
+const (
+	BuildModeLastCommits     = "BuildModeLastCommits"
+	BuildModeCommitsSpacedBy = "BuildModeCommitsSpacedBy"
+)
+
+type BuildOptions struct {
+	Mode            string
+	SpacedBySeconds float64
+}
+
+func DefaultBuildOptions() BuildOptions {
+	return BuildOptions{
+		Mode: BuildModeLastCommits,
+	}
+}
+
+func BuildOptionsSpacedBy() BuildOptions {
+	return BuildOptions{
+		Mode:            BuildModeCommitsSpacedBy,
+		SpacedBySeconds: 24 * 3600,
+	}
+}
+
+func (s *IndexBuilder) Build(options BuildOptions) (BuildOperationResult, error) {
 	start := time.Now()
 
-	commits, err := s.git.GetLastsCommits(s.config.Repository.MaxDepth)
+	var commits []git_reader.Commit
+	var err error
+	if options.Mode == BuildModeLastCommits {
+		commits, err = s.git.GetLastsCommits(s.config.Repository.MaxDepth)
+	} else if options.Mode == BuildModeCommitsSpacedBy {
+		commits, err = s.git.GetCommitsSpacedBy(s.config.Repository.MaxDepth, options.SpacedBySeconds)
+	}
 	if err != nil {
 		return BuildOperationResult{}, errors.Wrap(err, "cannot build index")
 	}
@@ -58,13 +89,15 @@ func (s *IndexBuilder) Build() (BuildOperationResult, error) {
 	ch := make(chan batchIndexResult)
 
 	state := *(s.state)
+	lastCommit := git_reader.Commit{}
 	for _, commit := range commits {
-		if state.ContainsCommit(commit) {
+		if state.ContainsCommit(commit.Hash) {
 			continue
 		}
-		state.AppendCommit(commit)
+		state.AppendCommit(commit.Hash)
+		lastCommit = commit
 
-		commitFiles, err := s.git.GetCommitFiles(commit)
+		commitFiles, err := s.git.GetCommitFiles(commit.Hash)
 		if err != nil {
 			return BuildOperationResult{}, err
 		}
@@ -118,7 +151,7 @@ func (s *IndexBuilder) Build() (BuildOperationResult, error) {
 	}
 
 	tookSec := time.Since(start).Seconds()
-	response := BuildOperationResult{TookSeconds: tookSec, Files: indexedFiles, TotalFiles: totalFiles}
+	response := BuildOperationResult{TookSeconds: tookSec, Files: indexedFiles, TotalFiles: totalFiles, OldestCommit: lastCommit.Date}
 	return response, err
 }
 
@@ -174,7 +207,7 @@ func (s *IndexBuilder) splitList(files []IndexedFile, bundleSize int) [][]Indexe
 	return result
 }
 
-func (s *IndexBuilder) commitFilesToIndexedFiles(files []utils.CommitFile) []IndexedFile {
+func (s *IndexBuilder) commitFilesToIndexedFiles(files []git_reader.CommitFile) []IndexedFile {
 	res := []IndexedFile{}
 	for _, fl := range files {
 		res = append(res, IndexedFile{

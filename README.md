@@ -34,3 +34,9 @@ Build (Linux, Mac only):
 
     $ ./scripts/ci.sh
     
+
+For development and testing see:
+
+- https://github.com/blevesearch/bleve
+- https://github.com/go-git/go-git
+- https://github.com/golang/mock
