@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/remipassmoilesel/gitsearch/cli"
-	"github.com/remipassmoilesel/gitsearch/config"
-	"github.com/remipassmoilesel/gitsearch/http"
-	"github.com/remipassmoilesel/gitsearch/index"
+	"gitlab.com/remipassmoilesel/gitsearch/cli"
+	"gitlab.com/remipassmoilesel/gitsearch/config"
+	"gitlab.com/remipassmoilesel/gitsearch/http"
+	"gitlab.com/remipassmoilesel/gitsearch/index"
 	"log"
 	"os"
 
-	_ "github.com/remipassmoilesel/gitsearch/web_client"
+	_ "gitlab.com/remipassmoilesel/gitsearch/web_client"
 )
 
 func main() {

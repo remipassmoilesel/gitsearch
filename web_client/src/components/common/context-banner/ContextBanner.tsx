@@ -27,7 +27,7 @@ export class ContextBanner extends Component<{}, State> {
     public render(): ReactNode {
         const bannerText = this.getBannerText();
         return (
-            <div className="gs-context-banner">GitSearch - {bannerText}</div>
+            <div className="gs-context-banner">Git Search - {bannerText}</div>
         );
     }
 

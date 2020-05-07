@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/nightlyone/lockfile"
 	"github.com/pkg/errors"
-	"github.com/remipassmoilesel/gitsearch/utils"
+	"gitlab.com/remipassmoilesel/gitsearch/utils"
 	"io/ioutil"
 	"os"
 	"path"
@@ -12,11 +12,11 @@ import (
 
 type IndexState interface {
 	Path() string
-	Content() *PersistedState
 	TryLock() error
 	Unlock() error
 	AppendCommit(commit string)
-	ContainsCommit(hash string) bool
+	ContainsCommit(commit string) bool
+	Content() *PersistedState
 	Write() error
 	Clean() error
 }

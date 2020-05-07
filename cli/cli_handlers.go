@@ -3,17 +3,24 @@ package cli
 import (
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/remipassmoilesel/gitsearch/config"
-	"github.com/remipassmoilesel/gitsearch/http"
-	"github.com/remipassmoilesel/gitsearch/index"
-	"github.com/urfave/cli/v2"
+	"gitlab.com/remipassmoilesel/gitsearch/config"
+	"gitlab.com/remipassmoilesel/gitsearch/http"
+	"gitlab.com/remipassmoilesel/gitsearch/index"
 	"os/exec"
 	"runtime"
 	"strings"
 	"time"
 )
 
-type CliHandlers struct {
+type CliHandlers interface {
+	UpdateIndex() error
+	CleanIndex() error
+	Search(query string, numberOfResults int, usePager bool) error
+	ShowFile(hash string, usePager bool) error
+	StartServer() error
+}
+
+type CliHandlersImpl struct {
 	config  config.Config
 	index   index.Index
 	server  http.HttpServer
@@ -21,11 +28,11 @@ type CliHandlers struct {
 }
 
 func NewCliHandlers(gsConfig config.Config, gsIndex index.Index, server http.HttpServer) CliHandlers {
-	display := CliDisplay{gsConfig}
-	return CliHandlers{gsConfig, gsIndex, server, display}
+	display := CliDisplayImpl{gsConfig}
+	return &CliHandlersImpl{gsConfig, gsIndex, server, &display}
 }
 
-func (s *CliHandlers) BuildIndex() error {
+func (s *CliHandlersImpl) UpdateIndex() error {
 	err := s.updateIndex()
 	if err != nil {
 		return err
@@ -34,7 +41,7 @@ func (s *CliHandlers) BuildIndex() error {
 	return err
 }
 
-func (s *CliHandlers) CleanIndex() error {
+func (s *CliHandlersImpl) CleanIndex() error {
 	res, err := s.index.Clean()
 	if err != nil {
 		return err
@@ -44,47 +51,40 @@ func (s *CliHandlers) CleanIndex() error {
 	return err
 }
 
-func (s *CliHandlers) Search(args cli.Args) error {
-	query := strings.Join(args.Slice(), " ")
-
-	if len(query) < 1 {
-		return errors.New("query is mandatory")
-	}
-
+func (s *CliHandlersImpl) Search(query string, numberOfResults int, usePager bool) error {
 	err := s.updateIndex()
 	if err != nil {
 		return err
 	}
 
-	res, err := s.index.Search(query, 10, index.OutputAnsi)
+	res, err := s.index.Search(query, numberOfResults, index.OutputAnsi)
 	if err != nil {
 		return err
 	}
 
-	s.display.Search(res)
-	return nil
-}
-
-func (s *CliHandlers) ShowFile(args cli.Args) error {
-	if args.Len() < 1 {
-		return errors.New("file hash or partial file hash is mandatory")
+	if len(res.Matches) > numberOfResults {
+		res.Matches = res.Matches[0:numberOfResults]
 	}
 
+	return s.display.Search(query, res, usePager)
+}
+
+// TODO: show files by path too
+func (s *CliHandlersImpl) ShowFile(hash string, usePager bool) error {
 	err := s.updateIndex()
 	if err != nil {
 		return err
 	}
 
-	res, err := s.index.FindDocumentById(args.Get(0))
+	res, err := s.index.FindDocumentById(hash)
 	if err != nil {
 		return err
 	}
 
-	s.display.ShowFile(res)
-	return nil
+	return s.display.ShowFile(res, usePager)
 }
 
-func (s *CliHandlers) StartServer() error {
+func (s *CliHandlersImpl) StartServer() error {
 	err := s.updateIndex()
 	if err != nil {
 		return err
@@ -98,14 +98,17 @@ func (s *CliHandlers) StartServer() error {
 	serviceUrl := "http://" + addr
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		openBrowser(serviceUrl)
+		err := openBrowser(serviceUrl)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}()
 
 	s.display.StartServer(serviceUrl)
 	return s.server.Start(addr)
 }
 
-func (s *CliHandlers) updateIndex() error {
+func (s *CliHandlersImpl) updateIndex() error {
 	repoUpToDate, err := s.index.IsUpToDate()
 	if err != nil {
 		return errors.Wrap(err, "cannot check if index is up to date")
@@ -113,7 +116,7 @@ func (s *CliHandlers) updateIndex() error {
 
 	if !repoUpToDate {
 		fmt.Println("Updating index ...")
-		res, err := s.index.Build()
+		res, err := s.index.BuildWith(index.BuildOptionsSpacedBy())
 		if err != nil {
 			return errors.Wrap(err, "cannot build index")
 		}
@@ -123,7 +126,7 @@ func (s *CliHandlers) updateIndex() error {
 }
 
 // See: https://gist.github.com/hyg/9c4afcd91fe24316cbf0
-func openBrowser(url string) {
+func openBrowser(url string) error {
 	var err error
 
 	switch runtime.GOOS {
@@ -136,9 +139,7 @@ func openBrowser(url string) {
 	default:
 		err = fmt.Errorf("unsupported platform")
 	}
-	if err != nil {
-		fmt.Println(err)
-	}
+	return err
 }
 
 func leftPad(s string, padStr string, pLen int) string {

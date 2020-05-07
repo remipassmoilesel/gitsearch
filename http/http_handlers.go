@@ -3,37 +3,37 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/remipassmoilesel/gitsearch/config"
-	"github.com/remipassmoilesel/gitsearch/index"
+	"gitlab.com/remipassmoilesel/gitsearch/config"
+	"gitlab.com/remipassmoilesel/gitsearch/index"
 	"net/http"
 )
 
-type HttpHandlers struct {
+type HttpHandlersImpl struct {
 	config config.Config
 	index  index.Index
 }
 
-func (s *HttpHandlers) RepositoryContext(w http.ResponseWriter, r *http.Request) {
+func (s *HttpHandlersImpl) RepositoryContext(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, s.config.Repository, nil)
 }
 
-func (s *HttpHandlers) BuildIndex(w http.ResponseWriter, r *http.Request) {
-	res, err := s.index.Build()
+func (s *HttpHandlersImpl) BuildIndex(w http.ResponseWriter, r *http.Request) {
+	res, err := s.index.BuildWith(index.BuildOptionsSpacedBy())
 	jsonResponse(w, res, err)
 }
 
-func (s *HttpHandlers) CleanIndex(w http.ResponseWriter, r *http.Request) {
+func (s *HttpHandlersImpl) CleanIndex(w http.ResponseWriter, r *http.Request) {
 	res, err := s.index.Clean()
 	jsonResponse(w, res, err)
 }
 
-func (s *HttpHandlers) Search(w http.ResponseWriter, r *http.Request) {
+func (s *HttpHandlersImpl) Search(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 	results, err := s.index.Search(query, 50, index.OutputHtml)
 	jsonResponse(w, results, err)
 }
 
-func (s *HttpHandlers) FindDocumentById(w http.ResponseWriter, r *http.Request) {
+func (s *HttpHandlersImpl) FindDocumentById(w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("id")
 	results, err := s.index.FindDocumentById(hash)
 	jsonResponse(w, results, err)

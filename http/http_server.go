@@ -1,34 +1,40 @@
+//go:generate mockgen -package mock -destination ../mocks/mocks_HttpServer.go gitlab.com/remipassmoilesel/gitsearch/http HttpServer
 package http
 
 import (
 	"errors"
 	"fmt"
 	"github.com/markbates/pkger"
-	"github.com/remipassmoilesel/gitsearch/config"
-	"github.com/remipassmoilesel/gitsearch/index"
+	"gitlab.com/remipassmoilesel/gitsearch/config"
+	"gitlab.com/remipassmoilesel/gitsearch/index"
 	"net/http"
 	"strconv"
 )
 
-type HttpServer struct {
+type HttpServer interface {
+	Start(addr string) error
+	GetAvailableAddress() (string, error)
+}
+
+type HttpServerImpl struct {
 	config     config.Config
-	handlers   HttpHandlers
+	handlers   HttpHandlersImpl
 	portHelper PortHelper
 }
 
 func NewHttpServer(config config.Config, index index.Index) HttpServer {
-	httpHandlers := HttpHandlers{config, index}
-	server := HttpServer{
+	httpHandlers := HttpHandlersImpl{config, index}
+	server := HttpServerImpl{
 		config:     config,
 		handlers:   httpHandlers,
 		portHelper: &PortHelperImpl{},
 	}
 	server.configure()
 
-	return server
+	return &server
 }
 
-func (s *HttpServer) configure() {
+func (s *HttpServerImpl) configure() {
 	http.HandleFunc("/api/repository/context", s.handlers.RepositoryContext)
 	http.HandleFunc("/api/repository/document", s.handlers.FindDocumentById)
 	http.HandleFunc("/api/index/build", s.handlers.BuildIndex)
@@ -39,11 +45,11 @@ func (s *HttpServer) configure() {
 	http.Handle("/", staticFiles)
 }
 
-func (s *HttpServer) Start(addr string) error {
+func (s *HttpServerImpl) Start(addr string) error {
 	return http.ListenAndServe(addr, nil)
 }
 
-func (s *HttpServer) GetAvailableAddress() (string, error) {
+func (s *HttpServerImpl) GetAvailableAddress() (string, error) {
 	port, err := s.getAvailablePort(s.config.Web.ListenAddress)
 	if err != nil {
 		return "", err
@@ -53,7 +59,7 @@ func (s *HttpServer) GetAvailableAddress() (string, error) {
 	return addr, nil
 }
 
-func (s *HttpServer) getAvailablePort(addr string) (int, error) {
+func (s *HttpServerImpl) getAvailablePort(addr string) (int, error) {
 	port := s.config.Web.Port
 	limit := port + 200
 	available, err := s.portHelper.IsPortAvailable(addr, port)

@@ -1,3 +1,4 @@
+//go:generate mockgen -package mock -destination ../mocks/mocks_Index.go gitlab.com/remipassmoilesel/gitsearch/index Index
 package index
 
 import (
@@ -6,37 +7,44 @@ import (
 	"github.com/blevesearch/bleve/search"
 	_ "github.com/blevesearch/bleve/search/highlight/highlighter/ansi"
 	"github.com/pkg/errors"
-	"github.com/remipassmoilesel/gitsearch/config"
-	"github.com/remipassmoilesel/gitsearch/utils"
+	"gitlab.com/remipassmoilesel/gitsearch/config"
+	"gitlab.com/remipassmoilesel/gitsearch/git_reader"
 	"path"
 	"time"
 )
 
-type Index struct {
+type Index interface {
+	Build() (BuildOperationResult, error)
+	BuildWith(options BuildOptions) (BuildOperationResult, error)
+	Close() error
+	Clean() (CleanOperationResult, error)
+	Search(textQuery string, size int, output string) (SearchResult, error)
+	FindDocumentById(hash string) (IndexedFile, error)
+	IsUpToDate() (bool, error)
+	DocumentCount() (uint64, error)
+}
+
+type IndexImpl struct {
 	config config.Config
 	// Data is split between a variable number of shards
 	shards ShardGroup
 	// Path to where is stored index data
 	indexDataRoot string
 	// All data is read from git repositories
-	git utils.GitReader
+	git git_reader.GitReader
 	// State contains a list of git commits that have already been processed
 	state IndexState
 }
 
 type IndexedFile struct {
-	// File hash
 	Hash string
 	// Commit hash
 	Commit string
-	// Date of commit
-	Date time.Time
-	// File content
+	// Date of youngest commit containing this version of the file
+	Date    time.Time
 	Content string
-	// File path
-	Path string
-	// File name
-	Name string
+	Name    string
+	Path    string
 }
 
 type SearchResult struct {
@@ -68,17 +76,17 @@ func NewIndex(config config.Config) (Index, error) {
 	shardsRootPath := path.Join(indexDataRoot, "shards")
 	shards := NewShardGroup(shardsRootPath, config.Index.Shards)
 
-	gitReader, err := utils.NewGitReader(config.Repository.Path)
+	gitReader, err := git_reader.NewGitReader(config.Repository.Path)
 	if err != nil {
-		return Index{}, err
+		return &IndexImpl{}, err
 	}
 
 	state, err := LoadIndexState(indexDataRoot)
 	if err != nil {
-		return Index{}, errors.Wrap(err, "cannot initialize index")
+		return &IndexImpl{}, errors.Wrap(err, "cannot initialize index")
 	}
 
-	index := Index{
+	index := IndexImpl{
 		config:        config,
 		shards:        shards,
 		indexDataRoot: indexDataRoot,
@@ -88,13 +96,13 @@ func NewIndex(config config.Config) (Index, error) {
 
 	err = index.initialize()
 	if err != nil {
-		return Index{}, err
+		return &IndexImpl{}, err
 	}
 
-	return index, err
+	return &index, err
 }
 
-func (s *Index) initialize() error {
+func (s *IndexImpl) initialize() error {
 	err := s.state.TryLock()
 	if err != nil {
 		return errors.Wrap(err, "cannot initialize index")
@@ -108,12 +116,17 @@ func (s *Index) initialize() error {
 	return nil
 }
 
-func (s *Index) Build() (BuildOperationResult, error) {
+func (s *IndexImpl) Build() (BuildOperationResult, error) {
 	builder := NewIndexBuilder(s)
-	return builder.Build()
+	return builder.Build(DefaultBuildOptions())
 }
 
-func (s *Index) Close() error {
+func (s *IndexImpl) BuildWith(options BuildOptions) (BuildOperationResult, error) {
+	builder := NewIndexBuilder(s)
+	return builder.Build(options)
+}
+
+func (s *IndexImpl) Close() error {
 	defer func() {
 		err := s.state.Unlock()
 		if err != nil {
@@ -129,7 +142,7 @@ func (s *Index) Close() error {
 	return s.shards.Close()
 }
 
-func (s *Index) Clean() (CleanOperationResult, error) {
+func (s *IndexImpl) Clean() (CleanOperationResult, error) {
 	start := time.Now()
 
 	err := s.shards.Clean()
@@ -147,7 +160,7 @@ func (s *Index) Clean() (CleanOperationResult, error) {
 	return response, err
 }
 
-func (s *Index) Search(textQuery string, size int, output string) (SearchResult, error) {
+func (s *IndexImpl) Search(textQuery string, size int, output string) (SearchResult, error) {
 	start := time.Now()
 
 	query := bleve.NewQueryStringQuery(textQuery)
@@ -187,7 +200,7 @@ func (s *Index) Search(textQuery string, size int, output string) (SearchResult,
 	return response, err
 }
 
-func (s *Index) FindDocumentById(hash string) (IndexedFile, error) {
+func (s *IndexImpl) FindDocumentById(hash string) (IndexedFile, error) {
 	query := bleve.NewPrefixQuery(hash)
 	req := bleve.NewSearchRequest(query)
 	req.Fields = []string{"*"} // return all fields in results
@@ -204,16 +217,16 @@ func (s *Index) FindDocumentById(hash string) (IndexedFile, error) {
 	return docMatchToIndexedFile(searchResult.Hits[0])
 }
 
-func (s *Index) IsUpToDate() (bool, error) {
-	hash, err := s.git.GetHeadHash()
+func (s *IndexImpl) IsUpToDate() (bool, error) {
+	commit, err := s.git.GetHeadHash()
 	if err != nil {
 		return false, err
 	}
 
-	return s.state.ContainsCommit(hash), nil
+	return s.state.ContainsCommit(commit), nil
 }
 
-func (s *Index) DocumentCount() (uint64, error) {
+func (s *IndexImpl) DocumentCount() (uint64, error) {
 	return s.shards.searchIndex.DocCount()
 }
 

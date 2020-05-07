@@ -23,14 +23,7 @@ rm web_client/pkged.go || true
 pkger -include /web_client/dist -o web_client/
 pkger list -include /web_client/dist
 
-echo ""
-echo "${PREFIX} Go format, test, build"
-echo ""
-
-export GS_TEST_DATA="$(pwd)/test/data"
-go fmt ./...
-go test ./... -race -cover
-go build
+./_test.sh
 
 export GOARCH=amd64
 

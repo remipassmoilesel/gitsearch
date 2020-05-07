@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {Component, ReactNode} from 'react'
 import {SearchBar, SearchEvent} from "./search-bar/SearchBar";
-import {ControlBar} from "./control-bar/ControlBar";
 import {SearchResults} from "./search-results/SearchResults";
 import {SearchResult} from "../../core/index/SearchResult";
 import {servicesMap} from "../../core/service-factory";
@@ -39,7 +38,6 @@ export class SearchView extends Component<Props, State> {
         return (
             <>
                 <SearchBar onSearch={this.onSearch}/>
-                <ControlBar/>
                 <SearchResults searchResponse={this.state.lastResponse}/>
             </>
         );

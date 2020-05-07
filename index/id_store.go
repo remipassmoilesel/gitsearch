@@ -1,6 +1,6 @@
 package index
 
-import "github.com/remipassmoilesel/gitsearch/utils"
+import "gitlab.com/remipassmoilesel/gitsearch/utils"
 
 // TODO: use persisted store
 type hashStore struct {

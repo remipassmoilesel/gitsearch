@@ -1,5 +1,0 @@
-$ gitsearch i b
-
-🔎 Gitsearch ⚡
-
-Index build took 31.365128712 seconds

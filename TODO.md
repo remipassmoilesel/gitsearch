@@ -1,6 +1,7 @@
 # TODO
 
 1. Améliorer les tests
+- Enlever tous les champs *Interface -> Interface, * pas nécéssaire
 
 - Afficher correctement les markup languages
 - Répartir les commits analysés sur plusieurs jours (1 tous les deux jours ?)        

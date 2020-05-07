@@ -4,7 +4,7 @@
 # This is script must be run like this:
 #
 #   $ cd gitsearch
-#   $ ./test/test.sh
+#   $ ./test/_test.sh
 #
 
 set -e
@@ -16,5 +16,6 @@ echo "${PREFIX} Go format, test, build"
 echo ""
 
 go fmt ./...
+go generate ./...
 go test ./... -race -cover -coverprofile=coverage.out
 go build
