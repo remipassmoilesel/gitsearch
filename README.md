@@ -1,6 +1,9 @@
 # Gitsearch
 
 [![pipeline status](https://gitlab.com/remipassmoilesel/gitsearch/badges/master/pipeline.svg)](https://gitlab.com/remipassmoilesel/gitsearch/-/commits/master)
+[![go_report](https://goreportcard.com/badge/gitlab.com/remipassmoilesel/gitsearch)](https://goreportcard.com/report/gitlab.com/remipassmoilesel/gitsearch)
+[![coverage report](https://gitlab.com/remipassmoilesel/gitsearch/badges/master/coverage.svg)](https://gitlab.com/remipassmoilesel/gitsearch/-/commits/master)
+
 
 Search in your git repositories !   
 
@@ -9,13 +12,15 @@ Start gitsearch in a Git repository and it will index all committed files and se
 **This is a learning project, paint is fresh, and contributions are welcome !**
 
 Source code is hosted here:
-- [https://github.com/remipassmoilesel/gitsearch](https://github.com/remipassmoilesel/gitsearch)
 - [https://gitlab.com/remipassmoilesel/gitsearch](https://gitlab.com/remipassmoilesel/gitsearch)
+- [https://github.com/remipassmoilesel/gitsearch](https://github.com/remipassmoilesel/gitsearch)
 
 
 ## Installation
 
-TBD ...
+Gitsearch is a single executable. Drop it in a folder in your path and start use it.
+
+TBC...
 
 
 ## Usage
