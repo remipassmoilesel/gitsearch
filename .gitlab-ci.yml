@@ -38,3 +38,4 @@ build master:
       - gitsearch-linux
       - gitsearch-macos
       - gitsearch-windows
+    expire_in: 1 month
