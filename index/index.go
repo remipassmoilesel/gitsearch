@@ -1,4 +1,4 @@
-//go:generate mockgen -package mock -destination ../mocks/mocks_Index.go gitlab.com/remipassmoilesel/gitsearch/index Index
+//go:generate mockgen -package mock -destination ../test/mock/mocks_Index.go gitlab.com/remipassmoilesel/gitsearch/index Index
 package index
 
 import (

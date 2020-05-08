@@ -11,8 +11,10 @@ set -e
 
 PREFIX=" 👣 👣 👣 "
 
+./_test.sh
+
 echo ""
 echo "${PREFIX} Go cover"
 echo ""
 
- go tool cover -html=coverage.out
+go tool cover -html=coverage.out

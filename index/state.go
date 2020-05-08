@@ -16,7 +16,7 @@ type IndexState interface {
 	Unlock() error
 	AppendCommit(commit string)
 	ContainsCommit(commit string) bool
-	Content() *PersistedState
+	Content() *PersistedStateImpl
 	Write() error
 	Clean() error
 }
@@ -25,10 +25,11 @@ type IndexStateImpl struct {
 	path     string
 	lockPath string
 	lock     lockfile.Lockfile
-	state    *PersistedState
+	state    *PersistedStateImpl
+	utils    utils.Utils
 }
 
-type PersistedState struct {
+type PersistedStateImpl struct {
 	IndexedCommits []string
 }
 
@@ -41,19 +42,21 @@ func LoadIndexState(stateDir string) (IndexState, error) {
 	statePath := path.Join(stateDir, StateFileName)
 	lockPath := path.Join(stateDir, StateLockName)
 	jsonContent, err := ioutil.ReadFile(statePath)
+	utils := utils.NewUtils()
 
 	if err != nil { // Index may not exists
 		state := IndexStateImpl{
 			path:     statePath,
 			lockPath: lockPath,
-			state: &PersistedState{
+			state: &PersistedStateImpl{
 				IndexedCommits: []string{},
 			},
+			utils: utils,
 		}
 		return &state, nil
 	}
 
-	var pState PersistedState
+	var pState PersistedStateImpl
 	err = json.Unmarshal(jsonContent, &pState)
 	if err != nil {
 		return &IndexStateImpl{}, errors.Wrap(err, "cannot unmarshall state file")
@@ -64,6 +67,7 @@ func LoadIndexState(stateDir string) (IndexState, error) {
 		lockPath: lockPath,
 		lock:     "",
 		state:    &pState,
+		utils:    utils,
 	}
 	return &state, nil
 }
@@ -72,7 +76,7 @@ func (s *IndexStateImpl) Path() string {
 	return s.path
 }
 
-func (s *IndexStateImpl) Content() *PersistedState {
+func (s *IndexStateImpl) Content() *PersistedStateImpl {
 	return s.state
 }
 
@@ -100,7 +104,7 @@ func (s *IndexStateImpl) AppendCommit(commit string) {
 }
 
 func (s *IndexStateImpl) ContainsCommit(hash string) bool {
-	return utils.ContainsString(s.state.IndexedCommits, hash)
+	return s.utils.ContainsString(s.state.IndexedCommits, hash)
 }
 
 func (s *IndexStateImpl) Write() error {

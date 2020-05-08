@@ -1,3 +1,4 @@
+//go:generate mockgen -package mock -destination ../test/mock/mocks_CliHandlers.go gitlab.com/remipassmoilesel/gitsearch/cli CliHandlers
 package cli
 
 import (
@@ -6,9 +7,7 @@ import (
 	"gitlab.com/remipassmoilesel/gitsearch/config"
 	"gitlab.com/remipassmoilesel/gitsearch/http"
 	"gitlab.com/remipassmoilesel/gitsearch/index"
-	"os/exec"
-	"runtime"
-	"strings"
+	"gitlab.com/remipassmoilesel/gitsearch/utils"
 	"time"
 )
 
@@ -25,11 +24,12 @@ type CliHandlersImpl struct {
 	index   index.Index
 	server  http.HttpServer
 	display CliDisplay
+	utils   utils.Utils
 }
 
 func NewCliHandlers(gsConfig config.Config, gsIndex index.Index, server http.HttpServer) CliHandlers {
-	display := CliDisplayImpl{gsConfig}
-	return &CliHandlersImpl{gsConfig, gsIndex, server, &display}
+	display := NewCliDisplay(gsConfig)
+	return &CliHandlersImpl{gsConfig, gsIndex, server, display, utils.NewUtils()}
 }
 
 func (s *CliHandlersImpl) UpdateIndex() error {
@@ -47,8 +47,7 @@ func (s *CliHandlersImpl) CleanIndex() error {
 		return err
 	}
 
-	s.display.IndexClean(res)
-	return err
+	return s.display.Display(s.display.IndexClean(res), false)
 }
 
 func (s *CliHandlersImpl) Search(query string, numberOfResults int, usePager bool) error {
@@ -66,7 +65,7 @@ func (s *CliHandlersImpl) Search(query string, numberOfResults int, usePager boo
 		res.Matches = res.Matches[0:numberOfResults]
 	}
 
-	return s.display.Search(query, res, usePager)
+	return s.display.Display(s.display.Search(res), usePager)
 }
 
 // TODO: show files by path too
@@ -81,7 +80,7 @@ func (s *CliHandlersImpl) ShowFile(hash string, usePager bool) error {
 		return err
 	}
 
-	return s.display.ShowFile(res, usePager)
+	return s.display.Display(s.display.ShowFile(res), usePager)
 }
 
 func (s *CliHandlersImpl) StartServer() error {
@@ -97,14 +96,15 @@ func (s *CliHandlersImpl) StartServer() error {
 
 	serviceUrl := "http://" + addr
 	go func() {
+		// Here we wait a little for server start before opening browser
 		time.Sleep(100 * time.Millisecond)
-		err := openBrowser(serviceUrl)
+		err := s.utils.OpenWebBrowser(serviceUrl)
 		if err != nil {
 			fmt.Println(err)
 		}
 	}()
 
-	s.display.StartServer(serviceUrl)
+	err = s.display.Display(s.display.StartServer(serviceUrl), false)
 	return s.server.Start(addr)
 }
 
@@ -120,32 +120,7 @@ func (s *CliHandlersImpl) updateIndex() error {
 		if err != nil {
 			return errors.Wrap(err, "cannot build index")
 		}
-		s.display.IndexBuild(res)
+		return s.display.Display(s.display.IndexBuild(res), false)
 	}
 	return nil
-}
-
-// See: https://gist.github.com/hyg/9c4afcd91fe24316cbf0
-func openBrowser(url string) error {
-	var err error
-
-	switch runtime.GOOS {
-	case "linux":
-		err = exec.Command("xdg-open", url).Start()
-	case "windows":
-		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-	case "darwin":
-		err = exec.Command("open", url).Start()
-	default:
-		err = fmt.Errorf("unsupported platform")
-	}
-	return err
-}
-
-func leftPad(s string, padStr string, pLen int) string {
-	return strings.Repeat(padStr, pLen) + s
-}
-
-func rightPad(s string, padStr string, pLen int) string {
-	return s + strings.Repeat(padStr, pLen)
 }

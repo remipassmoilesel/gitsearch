@@ -16,7 +16,7 @@ func Test_IndexState_Write(t *testing.T) {
 
 	state := IndexStateImpl{
 		path: statePath,
-		state: &PersistedState{
+		state: &PersistedStateImpl{
 			IndexedCommits: []string{"a", "b", "c"},
 		},
 	}

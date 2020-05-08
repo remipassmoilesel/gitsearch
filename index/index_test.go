@@ -161,7 +161,7 @@ func Test_Index_Clean_afterBuild(t *testing.T) {
 }
 
 // Create a fake git repository then initialize index in
-// TODO: return index, do not expect on internals
+// TODO: FIXME: return index, do not expect on internals
 func testIndex(t *testing.T, templateName string, batchSize int) IndexImpl {
 	var path, err = test.Helper.SampleGitRepository(templateName)
 	assert.NoError(t, err)
@@ -213,8 +213,8 @@ func (s *FakeState) Unlock() error {
 	return nil
 }
 
-func (s *FakeState) Content() *PersistedState {
-	return &PersistedState{}
+func (s *FakeState) Content() *PersistedStateImpl {
+	return &PersistedStateImpl{}
 }
 
 func (s *FakeState) LastCommit() (string, error) {

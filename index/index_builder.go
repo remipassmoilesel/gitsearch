@@ -15,7 +15,8 @@ type IndexBuilder struct {
 	config             config.Config
 	git                git_reader.GitReader
 	state              *IndexState
-	hashStore          hashStore
+	hashStore          HashStore
+	utils              utils.Utils
 	repositoryMaxDepth int
 }
 
@@ -25,7 +26,8 @@ func NewIndexBuilder(index *IndexImpl) IndexBuilder {
 		config:    index.config,
 		git:       index.git,
 		state:     &index.state,
-		hashStore: hashStore{},
+		utils:     utils.NewUtils(),
+		hashStore: NewHashStore(),
 	}
 }
 
@@ -105,7 +107,7 @@ func (s *IndexBuilder) Build(options BuildOptions) (BuildOperationResult, error)
 		totalFiles += len(indexedFiles)
 
 		batches := s.splitList(s.filterFiles(indexedFiles), batchSize)
-		s.hashStore.append(hashListFromFiles(indexedFiles))
+		s.hashStore.Append(hashListFromFiles(indexedFiles))
 
 		for _, batch := range batches {
 			batchWithBuffer := append(buffer, batch...)
@@ -180,11 +182,11 @@ func (s *IndexBuilder) batchIndex(ch chan batchIndexResult, index bleve.Index, f
 
 func (s *IndexBuilder) filterFiles(files []IndexedFile) []IndexedFile {
 	hashList := hashListFromFiles(files)
-	filteredHashList := s.hashStore.filterExisting(hashList)
+	filteredHashList := s.hashStore.FilterExisting(hashList)
 
 	filteredFiles := []IndexedFile{}
 	for _, file := range files {
-		if utils.ContainsString(filteredHashList, file.Hash) {
+		if s.utils.ContainsString(filteredHashList, file.Hash) {
 			filteredFiles = append(filteredFiles, file)
 		}
 	}
