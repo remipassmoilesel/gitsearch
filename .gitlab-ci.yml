@@ -20,6 +20,12 @@ build before merge:
     - ./_ci.sh
   only:
     - merge_requests
+  artifacts:
+    paths:
+      - gitsearch-linux
+      - gitsearch-macos
+      - gitsearch-windows
+    expire_in: 1 week
 
 build master:
   stage: build
@@ -27,4 +33,8 @@ build master:
     - ./_ci.sh
   only:
     - master
-
+  artifacts:
+    paths:
+      - gitsearch-linux
+      - gitsearch-macos
+      - gitsearch-windows

@@ -17,5 +17,6 @@ echo ""
 
 go fmt ./...
 go generate ./...
-go test ./... -race -cover -coverprofile=coverage.out
 go build
+go test ./... -race -cover -coverprofile=coverage.out
+go tool cover -func=coverage.out
