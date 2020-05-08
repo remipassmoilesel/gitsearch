@@ -5,11 +5,9 @@
 [![coverage report](https://gitlab.com/remipassmoilesel/gitsearch/badges/master/coverage.svg)](https://gitlab.com/remipassmoilesel/gitsearch/-/commits/master)
 
 
-Search in your git repositories !   
+Search in your git repositories ! Start gitsearch in a Git repository and it will index all committed files and search for you.   
 
-Start gitsearch in a Git repository and it will index all committed files and search for you.   
-
-**This is a learning project, paint is fresh, and contributions are welcome !**
+**This is a learning project, paint is fresh, and contributions are welcome !**   
 
 Source code is hosted here:
 - [https://gitlab.com/remipassmoilesel/gitsearch](https://gitlab.com/remipassmoilesel/gitsearch)
@@ -18,9 +16,13 @@ Source code is hosted here:
 
 ## Installation
 
-Gitsearch is a single executable. Drop it in a folder in your path and start use it.
+Gitsearch is a single executable. Drop it in a folder and start use it. Gitsearch has only be tested on GNU/Linux for 
+the moment.
 
-TBC...
+    $ cd /tmp && \
+        curl -o gitsearch -L https://github.com/remipassmoilesel/gitsearch/releases/latest/download/gitsearch-linux && \
+        chmod +x gitsearch && \
+        sudo mv gitsearch /usr/local/bin 
 
 
 ## Usage
@@ -54,6 +56,6 @@ For development and testing see:
 - [https://github.com/golang/mock](https://github.com/golang/mock)
 
 
-Build (POSIX OS only):
+Build (tested on GNU/Linux only):
 
     $ ./scripts/ci.sh
