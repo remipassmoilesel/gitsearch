@@ -8,12 +8,12 @@ import (
 )
 
 type CliParserImpl struct {
-	cliHandlers CliHandlers
+	handlers CliHandlers
 }
 
 func NewCliParser(config config.Config, index index.Index, server http.HttpServer) CliParserImpl {
 	handlers := NewCliHandlers(config, index, server)
-	return CliParserImpl{cliHandlers: handlers}
+	return CliParserImpl{handlers: handlers}
 }
 
 const (
@@ -36,6 +36,10 @@ func (s *CliParserImpl) ApplyCommand(args []string) error {
 				Email: "r.passmoilesel@protonmail.com",
 			},
 		},
+		// Default action if no sub command match
+		Action: func(context *cli.Context) error {
+			return s.handlers.StartServer()
+		},
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:  FlagNoPager,
@@ -48,7 +52,6 @@ func (s *CliParserImpl) ApplyCommand(args []string) error {
 				Name:    "search",
 				Aliases: []string{"s"},
 				Usage:   "Search command",
-
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:     FlagQuery,
@@ -71,7 +74,7 @@ func (s *CliParserImpl) ApplyCommand(args []string) error {
 						numberOfResults = context.Int(FlagNumberOfResult)
 					}
 
-					return s.cliHandlers.Search(query, numberOfResults, usePager)
+					return s.handlers.Search(query, numberOfResults, usePager)
 				},
 			},
 			{
@@ -90,7 +93,7 @@ func (s *CliParserImpl) ApplyCommand(args []string) error {
 					hash := context.String(FlagHash)
 					usePager := !context.Bool(FlagNoPager)
 
-					return s.cliHandlers.ShowFile(hash, usePager)
+					return s.handlers.ShowFile(hash, usePager)
 				},
 			},
 			{
@@ -98,7 +101,7 @@ func (s *CliParserImpl) ApplyCommand(args []string) error {
 				Aliases: []string{"w"},
 				Usage:   "Start web user interface",
 				Action: func(context *cli.Context) error {
-					return s.cliHandlers.StartServer()
+					return s.handlers.StartServer()
 				},
 			},
 			{
@@ -111,7 +114,7 @@ func (s *CliParserImpl) ApplyCommand(args []string) error {
 						Aliases: []string{"u"},
 						Usage:   "scan files from current git repository then index them",
 						Action: func(c *cli.Context) error {
-							return s.cliHandlers.UpdateIndex()
+							return s.handlers.UpdateIndex()
 						},
 					},
 					{
@@ -119,7 +122,7 @@ func (s *CliParserImpl) ApplyCommand(args []string) error {
 						Aliases: []string{"c"},
 						Usage:   "delete data from current git repository index",
 						Action: func(c *cli.Context) error {
-							return s.cliHandlers.CleanIndex()
+							return s.handlers.CleanIndex()
 						},
 					},
 				},

@@ -4,3 +4,4 @@ gitsearch
 gitsearch-*
 pkged.go
 coverage.out
+test/mock

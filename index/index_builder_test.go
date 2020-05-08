@@ -3,6 +3,7 @@ package index
 import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/remipassmoilesel/gitsearch/test"
+	"gitlab.com/remipassmoilesel/gitsearch/utils"
 	"strconv"
 	"testing"
 )
@@ -77,9 +78,11 @@ func Test_BuildIndex_buildTwiceShouldNotIndex(t *testing.T) {
 
 func Test_filterFiles(t *testing.T) {
 	builder := IndexBuilder{
-		hashStore: hashStore{
+		hashStore: &HashStoreImpl{
 			store: []string{"a", "b"},
+			utils: utils.NewUtils(),
 		},
+		utils: utils.NewUtils(),
 	}
 
 	files := []IndexedFile{

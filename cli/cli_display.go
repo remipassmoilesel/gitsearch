@@ -1,4 +1,4 @@
-//go:generate mockgen -package mock -destination ../mocks/mocks_CliDisplay.go gitlab.com/remipassmoilesel/gitsearch/cli CliDisplay
+//go:generate mockgen -package mock -destination ../test/mock/mocks_CliDisplay.go gitlab.com/remipassmoilesel/gitsearch/cli CliDisplay
 package cli
 
 import (
@@ -7,34 +7,56 @@ import (
 	"github.com/ttacon/chalk"
 	"gitlab.com/remipassmoilesel/gitsearch/config"
 	"gitlab.com/remipassmoilesel/gitsearch/index"
-	"os"
-	"os/exec"
+	"gitlab.com/remipassmoilesel/gitsearch/utils"
 	"strconv"
 	"strings"
 )
 
 type CliDisplay interface {
-	IndexBuild(res index.BuildOperationResult)
-	IndexClean(res index.CleanOperationResult)
-	Search(query string, res index.SearchResult, usePager bool) error
-	ShowFile(file index.IndexedFile, usePager bool) error
-	StartServer(serviceUrl string)
+	IndexBuild(res index.BuildOperationResult) string
+	IndexClean(res index.CleanOperationResult) string
+	Search(res index.SearchResult) string
+	ShowFile(file index.IndexedFile) string
+	StartServer(serviceUrl string) string
+	Display(output string, withPager bool) error
+}
+
+func NewCliDisplay(config config.Config) CliDisplay {
+	return &CliDisplayImpl{
+		config: config,
+		utils:  utils.NewUtils(),
+	}
 }
 
 type CliDisplayImpl struct {
 	config config.Config
+	utils  utils.Utils
 }
 
-func (d *CliDisplayImpl) IndexBuild(res index.BuildOperationResult) {
-	fmt.Println(fmt.Sprintf("Indexed %v/%v files in %v seconds. Oldest commit: %v", res.Files, res.TotalFiles, res.TookSeconds, res.OldestCommit))
+func (d *CliDisplayImpl) Display(output string, withPager bool) error {
+	if withPager {
+		err := d.utils.Pager(output)
+		if err != nil {
+			d.utils.PrintLn("*** You should install a pager and set $PAGER variable in your shell ***")
+			d.utils.PrintLn(output)
+		}
+		return errors.Wrap(err, "cannot pipe output to less")
+	} else {
+		d.utils.PrintLn(output)
+		return nil
+	}
 }
 
-func (d *CliDisplayImpl) IndexClean(res index.CleanOperationResult) {
-	fmt.Println(fmt.Sprintf("Index clean took %d ms", res.TookMs))
+func (d *CliDisplayImpl) IndexBuild(res index.BuildOperationResult) string {
+	return fmt.Sprintf("Indexed %v/%v files in %v seconds. Oldest commit: %v", res.Files, res.TotalFiles, res.TookSeconds, res.OldestCommit)
 }
 
-func (d *CliDisplayImpl) Search(query string, res index.SearchResult, usePager bool) error {
-	output := fmt.Sprintf("Query: %s\n", query)
+func (d *CliDisplayImpl) IndexClean(res index.CleanOperationResult) string {
+	return fmt.Sprintf("Index clean took %d ms", res.TookMs)
+}
+
+func (d *CliDisplayImpl) Search(res index.SearchResult) string {
+	output := fmt.Sprintf("Query: %s\n", res.Query)
 	for idx, match := range res.Matches {
 		// header
 		icon := "➡️"
@@ -62,49 +84,24 @@ func (d *CliDisplayImpl) Search(query string, res index.SearchResult, usePager b
 	}
 
 	output += fmt.Sprintf("Search took %v ms", res.TookMs)
-	if usePager {
-		return lessPipe(output)
-	} else {
-		fmt.Println(output)
-		return nil
-	}
+	return output
 }
 
-func (d *CliDisplayImpl) ShowFile(file index.IndexedFile, usePager bool) error {
+func (d *CliDisplayImpl) ShowFile(file index.IndexedFile) string {
 	commit := fmt.Sprintf("Commit: %v", string([]rune(file.Commit[0:15])))
 	date := fmt.Sprintf("Date: %v", file.Date)
 	id := fmt.Sprintf("Id: %v", file.Hash[0:15])
 	header := file.Path + " - " + commit + " - " + date + " - " + id
 
 	output := fmt.Sprintf("\n%s%s%s", chalk.Cyan, header, chalk.Reset)
-	output += file.Content
+	output += "\n" + file.Content
 	output += "\n"
 
-	if usePager {
-		return lessPipe(output)
-	} else {
-		fmt.Println(output)
-		return nil
-	}
+	return output
 }
 
-func (d *CliDisplayImpl) StartServer(serviceUrl string) {
-	fmt.Println("Listening on " + serviceUrl)
-	fmt.Println("Press CTRL+C to quit")
-}
-
-func lessPipe(content string) error {
-	pager := "/usr/bin/less"
-	if len(os.Getenv("PAGER")) > 0 {
-		pager = os.Getenv("PAGER")
-	}
-	cmd := exec.Command(pager)
-	cmd.Stdin = strings.NewReader(content)
-	cmd.Stdout = os.Stdout
-	err := cmd.Run()
-	if err != nil {
-		fmt.Println("*** You should install a pager and set $PAGER variable in your shell ***")
-		return errors.Wrap(err, "cannot pipe output to less")
-	}
-	return nil
+func (d *CliDisplayImpl) StartServer(serviceUrl string) string {
+	output := "Listening on " + serviceUrl
+	output += "\nPress CTRL+C to quit"
+	return output
 }

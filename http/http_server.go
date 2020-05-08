@@ -1,4 +1,4 @@
-//go:generate mockgen -package mock -destination ../mocks/mocks_HttpServer.go gitlab.com/remipassmoilesel/gitsearch/http HttpServer
+//go:generate mockgen -package mock -destination ../test/mock/mocks_HttpServer.go gitlab.com/remipassmoilesel/gitsearch/http HttpServer
 package http
 
 import (
@@ -13,24 +13,24 @@ import (
 
 type HttpServer interface {
 	Start(addr string) error
+	// Returns an available host:port string
 	GetAvailableAddress() (string, error)
 }
 
 type HttpServerImpl struct {
 	config     config.Config
-	handlers   HttpHandlersImpl
+	handlers   HttpHandlers
 	portHelper PortHelper
 }
 
-func NewHttpServer(config config.Config, index index.Index) HttpServer {
-	httpHandlers := HttpHandlersImpl{config, index}
+func NewHttpServer(cfg config.Config, idx index.Index) HttpServer {
+	handlers := NewHttpHandlers(cfg, idx)
 	server := HttpServerImpl{
-		config:     config,
-		handlers:   httpHandlers,
+		config:     cfg,
+		handlers:   handlers,
 		portHelper: &PortHelperImpl{},
 	}
 	server.configure()
-
 	return &server
 }
 

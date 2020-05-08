@@ -1,3 +1,4 @@
+//go:generate mockgen -package mock -destination ../test/mock/mocks_PortHelper.go gitlab.com/remipassmoilesel/gitsearch/http PortHelper
 package http
 
 import (

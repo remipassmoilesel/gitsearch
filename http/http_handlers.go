@@ -8,9 +8,24 @@ import (
 	"net/http"
 )
 
+type HttpHandlers interface {
+	RepositoryContext(w http.ResponseWriter, r *http.Request)
+	BuildIndex(w http.ResponseWriter, r *http.Request)
+	CleanIndex(w http.ResponseWriter, r *http.Request)
+	Search(w http.ResponseWriter, r *http.Request)
+	FindDocumentById(w http.ResponseWriter, r *http.Request)
+}
+
 type HttpHandlersImpl struct {
 	config config.Config
 	index  index.Index
+}
+
+func NewHttpHandlers(cfg config.Config, idx index.Index) HttpHandlers {
+	return &HttpHandlersImpl{
+		config: cfg,
+		index:  idx,
+	}
 }
 
 func (s *HttpHandlersImpl) RepositoryContext(w http.ResponseWriter, r *http.Request) {
@@ -63,9 +78,12 @@ func jsonResponse(w http.ResponseWriter, response interface{}, err error) {
 func jsonError(w http.ResponseWriter, err error) {
 	fmt.Println("Http error: ", err)
 
+	w.Header().Add("Content-Type", "application/json")
+
 	errorObject := map[string]string{"error": err.Error()}
 	responseJson, err := json.Marshal(errorObject)
 
+	w.WriteHeader(http.StatusInternalServerError)
 	_, err = w.Write(responseJson)
 	if err != nil {
 		fmt.Println("Http write error: ", err)
