@@ -5,37 +5,36 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/pkg/errors"
 	"gitlab.com/remipassmoilesel/gitsearch/config"
-	git_reader "gitlab.com/remipassmoilesel/gitsearch/git_reader"
+	"gitlab.com/remipassmoilesel/gitsearch/domain"
+	"gitlab.com/remipassmoilesel/gitsearch/git_reader"
 	"gitlab.com/remipassmoilesel/gitsearch/utils"
 	"time"
 )
 
-type IndexBuilder struct {
+type IndexBuilderImpl struct {
 	index              *IndexImpl
 	config             config.Config
 	git                git_reader.GitReader
-	state              *IndexState
+	state              IndexState
 	hashStore          HashStore
 	utils              utils.Utils
 	repositoryMaxDepth int
 }
 
-func NewIndexBuilder(index *IndexImpl) IndexBuilder {
-	return IndexBuilder{
+func NewIndexBuilder(cfg config.Config, state IndexState, index *IndexImpl) (IndexBuilderImpl, error) {
+	gitReader, err := git_reader.NewGitReader(cfg.Repository.Path)
+	if err != nil {
+		return IndexBuilderImpl{}, err
+	}
+
+	return IndexBuilderImpl{
 		index:     index,
-		config:    index.config,
-		git:       index.git,
-		state:     &index.state,
+		config:    cfg,
+		git:       gitReader,
+		state:     state,
 		utils:     utils.NewUtils(),
 		hashStore: NewHashStore(),
-	}
-}
-
-type BuildOperationResult struct {
-	TookSeconds  float64
-	Files        int
-	TotalFiles   int
-	OldestCommit time.Time
+	}, nil
 }
 
 type batchIndexResult struct {
@@ -50,25 +49,20 @@ const (
 	BuildModeCommitsSpacedBy = "BuildModeCommitsSpacedBy"
 )
 
-type BuildOptions struct {
-	Mode            string
-	SpacedBySeconds float64
-}
-
-func DefaultBuildOptions() BuildOptions {
-	return BuildOptions{
+func DefaultBuildOptions() domain.BuildOptions {
+	return domain.BuildOptions{
 		Mode: BuildModeLastCommits,
 	}
 }
 
-func BuildOptionsSpacedBy() BuildOptions {
-	return BuildOptions{
+func BuildOptionsSpacedBy() domain.BuildOptions {
+	return domain.BuildOptions{
 		Mode:            BuildModeCommitsSpacedBy,
 		SpacedBySeconds: 24 * 3600,
 	}
 }
 
-func (s *IndexBuilder) Build(options BuildOptions) (BuildOperationResult, error) {
+func (s *IndexBuilderImpl) Build(options domain.BuildOptions) (domain.BuildOperationResult, error) {
 	start := time.Now()
 
 	var commits []git_reader.Commit
@@ -79,29 +73,28 @@ func (s *IndexBuilder) Build(options BuildOptions) (BuildOperationResult, error)
 		commits, err = s.git.GetCommitsSpacedBy(s.config.Repository.MaxDepth, options.SpacedBySeconds)
 	}
 	if err != nil {
-		return BuildOperationResult{}, errors.Wrap(err, "cannot build index")
+		return domain.BuildOperationResult{}, errors.Wrap(err, "cannot build index")
 	}
 
 	indexedFiles := 0
 	totalFiles := 0
 	batchSize := s.config.Index.BatchSize
 	batchNumber := 0
-	buffer := []IndexedFile{}
+	buffer := []domain.IndexedFile{}
 
 	ch := make(chan batchIndexResult)
 
-	state := *(s.state)
 	lastCommit := git_reader.Commit{}
 	for _, commit := range commits {
-		if state.ContainsCommit(commit.Hash) {
+		if s.state.ContainsCommit(commit.Hash) {
 			continue
 		}
-		state.AppendCommit(commit.Hash)
+		s.state.AppendCommit(commit.Hash)
 		lastCommit = commit
 
 		commitFiles, err := s.git.GetCommitFiles(commit.Hash)
 		if err != nil {
-			return BuildOperationResult{}, err
+			return domain.BuildOperationResult{}, err
 		}
 		indexedFiles := s.commitFilesToIndexedFiles(commitFiles)
 		totalFiles += len(indexedFiles)
@@ -115,7 +108,7 @@ func (s *IndexBuilder) Build(options BuildOptions) (BuildOperationResult, error)
 				buffer = append(buffer, batch...)
 				continue
 			}
-			buffer = []IndexedFile{}
+			buffer = []domain.IndexedFile{}
 
 			shardId := batchNumber % s.index.shards.Size()
 			batchNumber++
@@ -135,7 +128,7 @@ func (s *IndexBuilder) Build(options BuildOptions) (BuildOperationResult, error)
 		i := 0
 		for res := range ch {
 			if res.err != nil {
-				return BuildOperationResult{}, err
+				return domain.BuildOperationResult{}, err
 			}
 
 			indexedFiles += len(res.hashList)
@@ -147,17 +140,17 @@ func (s *IndexBuilder) Build(options BuildOptions) (BuildOperationResult, error)
 		}
 	}
 
-	err = state.Write()
+	err = s.state.Write()
 	if err != nil {
-		return BuildOperationResult{}, err
+		return domain.BuildOperationResult{}, err
 	}
 
 	tookSec := time.Since(start).Seconds()
-	response := BuildOperationResult{TookSeconds: tookSec, Files: indexedFiles, TotalFiles: totalFiles, OldestCommit: lastCommit.Date}
+	response := domain.BuildOperationResult{TookSeconds: tookSec, Files: indexedFiles, TotalFiles: totalFiles, OldestCommit: lastCommit.Date}
 	return response, err
 }
 
-func (s *IndexBuilder) batchIndex(ch chan batchIndexResult, index bleve.Index, files []IndexedFile) {
+func (s *IndexBuilderImpl) batchIndex(ch chan batchIndexResult, index bleve.Index, files []domain.IndexedFile) {
 	batch := index.NewBatch()
 	for _, file := range files {
 		berr := batch.Index(file.Hash, file)
@@ -180,11 +173,11 @@ func (s *IndexBuilder) batchIndex(ch chan batchIndexResult, index bleve.Index, f
 	ch <- res
 }
 
-func (s *IndexBuilder) filterFiles(files []IndexedFile) []IndexedFile {
+func (s *IndexBuilderImpl) filterFiles(files []domain.IndexedFile) []domain.IndexedFile {
 	hashList := hashListFromFiles(files)
 	filteredHashList := s.hashStore.FilterExisting(hashList)
 
-	filteredFiles := []IndexedFile{}
+	filteredFiles := []domain.IndexedFile{}
 	for _, file := range files {
 		if s.utils.ContainsString(filteredHashList, file.Hash) {
 			filteredFiles = append(filteredFiles, file)
@@ -194,9 +187,9 @@ func (s *IndexBuilder) filterFiles(files []IndexedFile) []IndexedFile {
 	return filteredFiles
 }
 
-func (s *IndexBuilder) splitList(files []IndexedFile, bundleSize int) [][]IndexedFile {
+func (s *IndexBuilderImpl) splitList(files []domain.IndexedFile, bundleSize int) [][]domain.IndexedFile {
 	processed := 0
-	result := [][]IndexedFile{}
+	result := [][]domain.IndexedFile{}
 	for processed < len(files) {
 		upperBound := processed + bundleSize
 		if upperBound > len(files) {
@@ -209,10 +202,10 @@ func (s *IndexBuilder) splitList(files []IndexedFile, bundleSize int) [][]Indexe
 	return result
 }
 
-func (s *IndexBuilder) commitFilesToIndexedFiles(files []git_reader.CommitFile) []IndexedFile {
-	res := []IndexedFile{}
+func (s *IndexBuilderImpl) commitFilesToIndexedFiles(files []git_reader.CommitFile) []domain.IndexedFile {
+	res := []domain.IndexedFile{}
 	for _, fl := range files {
-		res = append(res, IndexedFile{
+		res = append(res, domain.IndexedFile{
 			Hash:    fl.Hash,
 			Commit:  fl.Commit,
 			Date:    fl.Date,
@@ -224,7 +217,7 @@ func (s *IndexBuilder) commitFilesToIndexedFiles(files []git_reader.CommitFile) 
 	return res
 }
 
-func hashListFromFiles(files []IndexedFile) []string {
+func hashListFromFiles(files []domain.IndexedFile) []string {
 	res := []string{}
 	for _, file := range files {
 		res = append(res, file.Hash)
@@ -232,7 +225,7 @@ func hashListFromFiles(files []IndexedFile) []string {
 	return uniqueStrings(res)
 }
 
-func commitListFromFiles(files []IndexedFile) []string {
+func commitListFromFiles(files []domain.IndexedFile) []string {
 	res := []string{}
 	for _, file := range files {
 		res = append(res, file.Commit)

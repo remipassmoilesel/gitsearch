@@ -3,10 +3,12 @@ package utils
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
+	"time"
 )
 
 type Utils interface {
@@ -14,6 +16,7 @@ type Utils interface {
 	OpenWebBrowser(url string) error
 	Pager(content string) error
 	PrintLn(content interface{})
+	StringToDate(dateStr string) (time.Time, error)
 }
 
 func NewUtils() Utils {
@@ -63,4 +66,12 @@ func (s *UtilsImpl) Pager(content string) error {
 // For testing purposes
 func (s *UtilsImpl) PrintLn(content interface{}) {
 	fmt.Println(content)
+}
+
+func (s *UtilsImpl) StringToDate(dateStr string) (time.Time, error) {
+	date, err := time.Parse("2006-01-02T15:04:05Z", dateStr)
+	if err != nil {
+		return time.Time{}, errors.Wrap(err, "cannot parse date "+dateStr)
+	}
+	return date, nil
 }

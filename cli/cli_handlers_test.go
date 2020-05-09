@@ -4,7 +4,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/remipassmoilesel/gitsearch/config"
-	"gitlab.com/remipassmoilesel/gitsearch/index"
+	"gitlab.com/remipassmoilesel/gitsearch/domain"
 	"gitlab.com/remipassmoilesel/gitsearch/test/mock"
 	"testing"
 )
@@ -119,27 +119,27 @@ func Test_CliHandlers_Search_tooMuchResults(t *testing.T) {
 		display: cliDisplay,
 	}
 
-	searchRes := index.SearchResult{
+	searchRes := domain.SearchResult{
 		Query:  "query",
 		TookMs: 5,
-		Matches: []index.SearchMatch{
+		Matches: []domain.SearchMatch{
 			{
-				File:      index.IndexedFile{},
+				File:      domain.IndexedFile{},
 				Fragments: []string{"match 1"},
 			},
 			{
-				File:      index.IndexedFile{},
+				File:      domain.IndexedFile{},
 				Fragments: []string{"match 2"},
 			},
 		},
 	}
 
-	reducedRes := index.SearchResult{
+	reducedRes := domain.SearchResult{
 		Query:  "query",
 		TookMs: 5,
-		Matches: []index.SearchMatch{
+		Matches: []domain.SearchMatch{
 			{
-				File:      index.IndexedFile{},
+				File:      domain.IndexedFile{},
 				Fragments: []string{"match 1"},
 			},
 		},

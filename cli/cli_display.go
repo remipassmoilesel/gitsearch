@@ -6,17 +6,17 @@ import (
 	"github.com/pkg/errors"
 	"github.com/ttacon/chalk"
 	"gitlab.com/remipassmoilesel/gitsearch/config"
-	"gitlab.com/remipassmoilesel/gitsearch/index"
+	"gitlab.com/remipassmoilesel/gitsearch/domain"
 	"gitlab.com/remipassmoilesel/gitsearch/utils"
 	"strconv"
 	"strings"
 )
 
 type CliDisplay interface {
-	IndexBuild(res index.BuildOperationResult) string
-	IndexClean(res index.CleanOperationResult) string
-	Search(res index.SearchResult) string
-	ShowFile(file index.IndexedFile) string
+	IndexBuild(res domain.BuildOperationResult) string
+	IndexClean(res domain.CleanOperationResult) string
+	Search(res domain.SearchResult) string
+	ShowFile(file domain.IndexedFile) string
 	StartServer(serviceUrl string) string
 	Display(output string, withPager bool) error
 }
@@ -47,15 +47,15 @@ func (d *CliDisplayImpl) Display(output string, withPager bool) error {
 	}
 }
 
-func (d *CliDisplayImpl) IndexBuild(res index.BuildOperationResult) string {
+func (d *CliDisplayImpl) IndexBuild(res domain.BuildOperationResult) string {
 	return fmt.Sprintf("Indexed %v/%v files in %v seconds. Oldest commit: %v", res.Files, res.TotalFiles, res.TookSeconds, res.OldestCommit)
 }
 
-func (d *CliDisplayImpl) IndexClean(res index.CleanOperationResult) string {
+func (d *CliDisplayImpl) IndexClean(res domain.CleanOperationResult) string {
 	return fmt.Sprintf("Index clean took %d ms", res.TookMs)
 }
 
-func (d *CliDisplayImpl) Search(res index.SearchResult) string {
+func (d *CliDisplayImpl) Search(res domain.SearchResult) string {
 	output := fmt.Sprintf("Query: %s\n", res.Query)
 	for idx, match := range res.Matches {
 		// header
@@ -87,7 +87,7 @@ func (d *CliDisplayImpl) Search(res index.SearchResult) string {
 	return output
 }
 
-func (d *CliDisplayImpl) ShowFile(file index.IndexedFile) string {
+func (d *CliDisplayImpl) ShowFile(file domain.IndexedFile) string {
 	commit := fmt.Sprintf("Commit: %v", string([]rune(file.Commit[0:15])))
 	date := fmt.Sprintf("Date: %v", file.Date)
 	id := fmt.Sprintf("Id: %v", file.Hash[0:15])
