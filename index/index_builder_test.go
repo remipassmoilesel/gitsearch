@@ -2,6 +2,7 @@ package index
 
 import (
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/remipassmoilesel/gitsearch/domain"
 	"gitlab.com/remipassmoilesel/gitsearch/test"
 	"gitlab.com/remipassmoilesel/gitsearch/utils"
 	"strconv"
@@ -77,7 +78,7 @@ func Test_BuildIndex_buildTwiceShouldNotIndex(t *testing.T) {
 }
 
 func Test_filterFiles(t *testing.T) {
-	builder := IndexBuilder{
+	builder := IndexBuilderImpl{
 		hashStore: &HashStoreImpl{
 			store: []string{"a", "b"},
 			utils: utils.NewUtils(),
@@ -85,7 +86,7 @@ func Test_filterFiles(t *testing.T) {
 		utils: utils.NewUtils(),
 	}
 
-	files := []IndexedFile{
+	files := []domain.IndexedFile{
 		{
 			Hash: "a",
 		},
@@ -98,15 +99,15 @@ func Test_filterFiles(t *testing.T) {
 	}
 
 	res := builder.filterFiles(files)
-	assert.Equal(t, []IndexedFile{files[2]}, res)
+	assert.Equal(t, []domain.IndexedFile{files[2]}, res)
 }
 
 func Test_splitList(t *testing.T) {
-	builder := IndexBuilder{}
+	builder := IndexBuilderImpl{}
 
-	files := []IndexedFile{}
+	files := []domain.IndexedFile{}
 	for i := 0; i < 10; i++ {
-		files = append(files, IndexedFile{Hash: strconv.Itoa(i)})
+		files = append(files, domain.IndexedFile{Hash: strconv.Itoa(i)})
 	}
 
 	res := builder.splitList(files, 20)
@@ -117,7 +118,7 @@ func Test_splitList(t *testing.T) {
 }
 
 func Test_hashListFromFiles(t *testing.T) {
-	files := []IndexedFile{
+	files := []domain.IndexedFile{
 		{
 			Hash: "a",
 		},
@@ -137,7 +138,7 @@ func Test_hashListFromFiles(t *testing.T) {
 }
 
 func Test_commitListFromFiles(t *testing.T) {
-	files := []IndexedFile{
+	files := []domain.IndexedFile{
 		{
 			Commit: "a",
 		},

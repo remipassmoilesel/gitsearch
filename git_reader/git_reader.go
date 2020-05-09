@@ -1,3 +1,4 @@
+//go:generate mockgen -package mock -destination ../test/mock/mocks_GitReader.go gitlab.com/remipassmoilesel/gitsearch/git_reader GitReader
 package git_reader
 
 import (

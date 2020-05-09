@@ -1,9 +1,11 @@
+//go:generate mockgen -package mock -destination ../test/mock/mocks_IndexState.go gitlab.com/remipassmoilesel/gitsearch/index IndexState
 package index
 
 import (
 	"encoding/json"
 	"github.com/nightlyone/lockfile"
 	"github.com/pkg/errors"
+	"gitlab.com/remipassmoilesel/gitsearch/domain"
 	"gitlab.com/remipassmoilesel/gitsearch/utils"
 	"io/ioutil"
 	"os"
@@ -16,7 +18,7 @@ type IndexState interface {
 	Unlock() error
 	AppendCommit(commit string)
 	ContainsCommit(commit string) bool
-	Content() *PersistedStateImpl
+	Content() *domain.PersistedState
 	Write() error
 	Clean() error
 }
@@ -25,12 +27,8 @@ type IndexStateImpl struct {
 	path     string
 	lockPath string
 	lock     lockfile.Lockfile
-	state    *PersistedStateImpl
+	state    *domain.PersistedState
 	utils    utils.Utils
-}
-
-type PersistedStateImpl struct {
-	IndexedCommits []string
 }
 
 const (
@@ -48,7 +46,7 @@ func LoadIndexState(stateDir string) (IndexState, error) {
 		state := IndexStateImpl{
 			path:     statePath,
 			lockPath: lockPath,
-			state: &PersistedStateImpl{
+			state: &domain.PersistedState{
 				IndexedCommits: []string{},
 			},
 			utils: utils,
@@ -56,7 +54,7 @@ func LoadIndexState(stateDir string) (IndexState, error) {
 		return &state, nil
 	}
 
-	var pState PersistedStateImpl
+	var pState domain.PersistedState
 	err = json.Unmarshal(jsonContent, &pState)
 	if err != nil {
 		return &IndexStateImpl{}, errors.Wrap(err, "cannot unmarshall state file")
@@ -76,7 +74,7 @@ func (s *IndexStateImpl) Path() string {
 	return s.path
 }
 
-func (s *IndexStateImpl) Content() *PersistedStateImpl {
+func (s *IndexStateImpl) Content() *domain.PersistedState {
 	return s.state
 }
 

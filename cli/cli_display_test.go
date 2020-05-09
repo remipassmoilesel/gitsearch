@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/ttacon/chalk"
 	"gitlab.com/remipassmoilesel/gitsearch/config"
-	"gitlab.com/remipassmoilesel/gitsearch/index"
+	"gitlab.com/remipassmoilesel/gitsearch/domain"
 	"gitlab.com/remipassmoilesel/gitsearch/test/mock"
 	"testing"
 	"time"
@@ -76,7 +76,7 @@ func Test_CliDisplayImpl_IndexBuild(t *testing.T) {
 		utils:  utils,
 	}
 
-	output := cliDisplay.IndexBuild(index.BuildOperationResult{
+	output := cliDisplay.IndexBuild(domain.BuildOperationResult{
 		TookSeconds:  1,
 		Files:        2,
 		TotalFiles:   3,
@@ -95,7 +95,7 @@ func Test_CliDisplayImpl_IndexClean(t *testing.T) {
 		utils:  utils,
 	}
 
-	output := cliDisplay.IndexClean(index.CleanOperationResult{
+	output := cliDisplay.IndexClean(domain.CleanOperationResult{
 		TookMs: 1,
 	})
 	assert.Equal(t, "Index clean took 1 ms", output)
@@ -125,7 +125,7 @@ func Test_CliDisplayImpl_ShowFile(t *testing.T) {
 		utils:  utils,
 	}
 
-	output := cliDisplay.ShowFile(index.IndexedFile{
+	output := cliDisplay.ShowFile(domain.IndexedFile{
 		Hash:    "508eaccae7b32fa2407d78757cdc850ab908ff8d",
 		Commit:  "94e058175755f4a5a479a94d4a87492a0c8ca9bc",
 		Date:    time.Time{},
@@ -148,12 +148,12 @@ func Test_CliDisplayImpl_Search_2results(t *testing.T) {
 		utils:  utils,
 	}
 
-	output := cliDisplay.Search(index.SearchResult{
+	output := cliDisplay.Search(domain.SearchResult{
 		Query:  "query",
 		TookMs: 5,
-		Matches: []index.SearchMatch{
+		Matches: []domain.SearchMatch{
 			{
-				File: index.IndexedFile{
+				File: domain.IndexedFile{
 					Hash:    "1-508eaccae7b32fa2407d78757cdc850ab908ff8d",
 					Commit:  "1-94e058175755f4a5a479a94d4a87492a0c8ca9bc",
 					Date:    time.Time{},
@@ -167,7 +167,7 @@ func Test_CliDisplayImpl_Search_2results(t *testing.T) {
 				},
 			},
 			{
-				File: index.IndexedFile{
+				File: domain.IndexedFile{
 					Hash:    "2-508eaccae7b32fa2407d78757cdc850ab908ff8d",
 					Commit:  "2-94e058175755f4a5a479a94d4a87492a0c8ca9bc",
 					Date:    time.Time{},
@@ -196,10 +196,10 @@ func Test_CliDisplayImpl_Search_noResults(t *testing.T) {
 		utils:  utils,
 	}
 
-	output := cliDisplay.Search(index.SearchResult{
+	output := cliDisplay.Search(domain.SearchResult{
 		Query:   "query",
 		TookMs:  5,
-		Matches: []index.SearchMatch{},
+		Matches: []domain.SearchMatch{},
 	})
 	expected := "Query: query\n\nNothing found.Search took 5 ms"
 	assert.Equal(t, expected, output)

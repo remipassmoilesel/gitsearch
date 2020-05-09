@@ -8,18 +8,20 @@ import (
 	_ "github.com/blevesearch/bleve/search/highlight/highlighter/ansi"
 	"github.com/pkg/errors"
 	"gitlab.com/remipassmoilesel/gitsearch/config"
+	"gitlab.com/remipassmoilesel/gitsearch/domain"
 	"gitlab.com/remipassmoilesel/gitsearch/git_reader"
+	"gitlab.com/remipassmoilesel/gitsearch/utils"
 	"path"
 	"time"
 )
 
 type Index interface {
-	Build() (BuildOperationResult, error)
-	BuildWith(options BuildOptions) (BuildOperationResult, error)
+	Build() (domain.BuildOperationResult, error)
+	BuildWith(options domain.BuildOptions) (domain.BuildOperationResult, error)
 	Close() error
-	Clean() (CleanOperationResult, error)
-	Search(textQuery string, size int, output string) (SearchResult, error)
-	FindDocumentById(hash string) (IndexedFile, error)
+	Clean() (domain.CleanOperationResult, error)
+	Search(textQuery string, size int, output string) (domain.SearchResult, error)
+	FindDocumentById(hash string) (domain.IndexedFile, error)
 	IsUpToDate() (bool, error)
 	DocumentCount() (uint64, error)
 }
@@ -34,41 +36,13 @@ type IndexImpl struct {
 	git git_reader.GitReader
 	// State contains a list of git commits that have already been processed
 	state IndexState
-}
-
-type IndexedFile struct {
-	Hash string
-	// Commit hash
-	Commit string
-	// Date of youngest commit containing this version of the file
-	Date    time.Time
-	Content string
-	Name    string
-	Path    string
-}
-
-type SearchResult struct {
-	// Executed query
-	Query string
-	// Search duration in milli seconds
-	TookMs int64
-	// Files matching query
-	Matches []SearchMatch
-}
-
-type SearchMatch struct {
-	File      IndexedFile
-	Fragments []string
+	utils utils.Utils
 }
 
 const (
 	OutputHtml = "html"
 	OutputAnsi = "ansi"
 )
-
-type CleanOperationResult struct {
-	TookMs int64
-}
 
 func NewIndex(config config.Config) (Index, error) {
 	indexDataRoot := path.Join(config.DataRootPath, "index", config.Repository.Path)
@@ -92,6 +66,7 @@ func NewIndex(config config.Config) (Index, error) {
 		indexDataRoot: indexDataRoot,
 		git:           gitReader,
 		state:         state,
+		utils:         utils.NewUtils(),
 	}
 
 	err = index.initialize()
@@ -102,6 +77,7 @@ func NewIndex(config config.Config) (Index, error) {
 	return &index, err
 }
 
+// TODO: FIXME: remove method
 func (s *IndexImpl) initialize() error {
 	err := s.state.TryLock()
 	if err != nil {
@@ -116,13 +92,15 @@ func (s *IndexImpl) initialize() error {
 	return nil
 }
 
-func (s *IndexImpl) Build() (BuildOperationResult, error) {
-	builder := NewIndexBuilder(s)
-	return builder.Build(DefaultBuildOptions())
+func (s *IndexImpl) Build() (domain.BuildOperationResult, error) {
+	return s.BuildWith(DefaultBuildOptions())
 }
 
-func (s *IndexImpl) BuildWith(options BuildOptions) (BuildOperationResult, error) {
-	builder := NewIndexBuilder(s)
+func (s *IndexImpl) BuildWith(options domain.BuildOptions) (domain.BuildOperationResult, error) {
+	builder, err := NewIndexBuilder(s.config, s.state, s)
+	if err != nil {
+		return domain.BuildOperationResult{}, err
+	}
 	return builder.Build(options)
 }
 
@@ -142,25 +120,25 @@ func (s *IndexImpl) Close() error {
 	return s.shards.Close()
 }
 
-func (s *IndexImpl) Clean() (CleanOperationResult, error) {
+func (s *IndexImpl) Clean() (domain.CleanOperationResult, error) {
 	start := time.Now()
 
 	err := s.shards.Clean()
 	if err != nil {
-		return CleanOperationResult{}, err
+		return domain.CleanOperationResult{}, err
 	}
 
 	err = s.state.Clean()
 	if err != nil {
-		return CleanOperationResult{}, err
+		return domain.CleanOperationResult{}, err
 	}
 
 	tookMs := time.Since(start).Milliseconds()
-	response := CleanOperationResult{TookMs: tookMs}
+	response := domain.CleanOperationResult{TookMs: tookMs}
 	return response, err
 }
 
-func (s *IndexImpl) Search(textQuery string, size int, output string) (SearchResult, error) {
+func (s *IndexImpl) Search(textQuery string, size int, output string) (domain.SearchResult, error) {
 	start := time.Now()
 
 	query := bleve.NewQueryStringQuery(textQuery)
@@ -169,17 +147,17 @@ func (s *IndexImpl) Search(textQuery string, size int, output string) (SearchRes
 	req.SortBy([]string{"Date", "_score"})
 	req.Fields = []string{"*"} // return all fields in results
 	req.Highlight = bleve.NewHighlightWithStyle(output)
-	searchResult, err := s.shards.searchIndex.Search(req)
 
+	searchResult, err := s.shards.searchIndex.Search(req)
 	if err != nil {
-		return *new(SearchResult), errors.Wrap(err, "search error")
+		return *new(domain.SearchResult), errors.Wrap(err, "search error")
 	}
 
-	var resultMatches []SearchMatch
+	var resultMatches []domain.SearchMatch
 	for _, hit := range searchResult.Hits {
-		indexedFile, err := docMatchToIndexedFile(hit)
+		indexedFile, err := s.docMatchToIndexedFile(hit)
 		if err != nil {
-			return SearchResult{}, errors.Wrap(err, "cannot parse document")
+			return domain.SearchResult{}, errors.Wrap(err, "cannot parse document")
 		}
 
 		fragments := []string{}
@@ -187,7 +165,7 @@ func (s *IndexImpl) Search(textQuery string, size int, output string) (SearchRes
 			fragments = append(fragments, frags...)
 		}
 
-		match := SearchMatch{
+		match := domain.SearchMatch{
 			File:      indexedFile,
 			Fragments: fragments,
 		}
@@ -196,25 +174,25 @@ func (s *IndexImpl) Search(textQuery string, size int, output string) (SearchRes
 	}
 
 	tookMs := time.Since(start).Milliseconds()
-	response := SearchResult{Query: textQuery, TookMs: tookMs, Matches: resultMatches}
+	response := domain.SearchResult{Query: textQuery, TookMs: tookMs, Matches: resultMatches}
 	return response, err
 }
 
-func (s *IndexImpl) FindDocumentById(hash string) (IndexedFile, error) {
+func (s *IndexImpl) FindDocumentById(hash string) (domain.IndexedFile, error) {
 	query := bleve.NewPrefixQuery(hash)
 	req := bleve.NewSearchRequest(query)
 	req.Fields = []string{"*"} // return all fields in results
-	searchResult, err := s.shards.searchIndex.Search(req)
 
+	searchResult, err := s.shards.searchIndex.Search(req)
 	if err != nil {
-		return IndexedFile{}, errors.Wrap(err, "cannot search document "+hash)
+		return domain.IndexedFile{}, errors.Wrap(err, "cannot search document "+hash)
 	}
 
 	if len(searchResult.Hits) < 1 {
-		return IndexedFile{}, errors.New("not found " + hash)
+		return domain.IndexedFile{}, errors.New("not found " + hash)
 	}
 
-	return docMatchToIndexedFile(searchResult.Hits[0])
+	return s.docMatchToIndexedFile(searchResult.Hits[0])
 }
 
 func (s *IndexImpl) IsUpToDate() (bool, error) {
@@ -230,12 +208,12 @@ func (s *IndexImpl) DocumentCount() (uint64, error) {
 	return s.shards.searchIndex.DocCount()
 }
 
-func docMatchToIndexedFile(document *search.DocumentMatch) (IndexedFile, error) {
-	date, err := stringToDate(document.Fields["Date"].(string))
+func (s *IndexImpl) docMatchToIndexedFile(document *search.DocumentMatch) (domain.IndexedFile, error) {
+	date, err := s.utils.StringToDate(document.Fields["Date"].(string))
 	if err != nil {
-		return IndexedFile{}, err
+		return domain.IndexedFile{}, err
 	}
-	file := IndexedFile{
+	file := domain.IndexedFile{
 		Hash:    document.Fields["Hash"].(string),
 		Commit:  document.Fields["Commit"].(string),
 		Content: document.Fields["Content"].(string),
@@ -244,21 +222,4 @@ func docMatchToIndexedFile(document *search.DocumentMatch) (IndexedFile, error) 
 		Date:    date,
 	}
 	return file, nil
-}
-
-func stringToDate(dateStr string) (time.Time, error) {
-	date, err := time.Parse("2006-01-02T15:04:05Z", dateStr)
-	if err != nil {
-		return time.Time{}, errors.Wrap(err, "cannot parse date "+dateStr)
-	}
-	return date, nil
-}
-
-func Contains(a []string, x string) bool {
-	for _, n := range a {
-		if x == n {
-			return true
-		}
-	}
-	return false
 }

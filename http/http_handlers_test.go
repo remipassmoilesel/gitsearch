@@ -5,6 +5,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/remipassmoilesel/gitsearch/config"
+	"gitlab.com/remipassmoilesel/gitsearch/domain"
 	"gitlab.com/remipassmoilesel/gitsearch/index"
 	mock "gitlab.com/remipassmoilesel/gitsearch/test/mock"
 	"io"
@@ -55,7 +56,7 @@ func Test_HttpHandlersImpl_BuildIndex(t *testing.T) {
 	res := httptest.NewRecorder()
 	handler := http.HandlerFunc(handlers.BuildIndex)
 
-	idx.EXPECT().BuildWith(gomock.Any()).Times(1).Return(index.BuildOperationResult{
+	idx.EXPECT().BuildWith(gomock.Any()).Times(1).Return(domain.BuildOperationResult{
 		TookSeconds:  1,
 		Files:        2,
 		TotalFiles:   3,
@@ -82,7 +83,7 @@ func Test_HttpHandlersImpl_CleanIndex(t *testing.T) {
 	res := httptest.NewRecorder()
 	handler := http.HandlerFunc(handlers.CleanIndex)
 
-	idx.EXPECT().Clean().Times(1).Return(index.CleanOperationResult{TookMs: 1}, nil)
+	idx.EXPECT().Clean().Times(1).Return(domain.CleanOperationResult{TookMs: 1}, nil)
 
 	handler.ServeHTTP(res, req)
 
@@ -104,12 +105,12 @@ func Test_HttpHandlersImpl_Search(t *testing.T) {
 	res := httptest.NewRecorder()
 	handler := http.HandlerFunc(handlers.Search)
 
-	idx.EXPECT().Search(gomock.Eq("search query"), gomock.Eq(50), gomock.Eq(index.OutputHtml)).Times(1).Return(index.SearchResult{
+	idx.EXPECT().Search(gomock.Eq("search query"), gomock.Eq(50), gomock.Eq(index.OutputHtml)).Times(1).Return(domain.SearchResult{
 		Query:  "search query",
 		TookMs: 5,
-		Matches: []index.SearchMatch{
+		Matches: []domain.SearchMatch{
 			{
-				File: index.IndexedFile{
+				File: domain.IndexedFile{
 					Hash:    "hash",
 					Commit:  "commit",
 					Date:    time.Date(2015, 05, 31, 0, 0, 0, 0, time.UTC),
@@ -142,7 +143,7 @@ func Test_HttpHandlersImpl_FindDocumentById(t *testing.T) {
 	res := httptest.NewRecorder()
 	handler := http.HandlerFunc(handlers.FindDocumentById)
 
-	idx.EXPECT().FindDocumentById(gomock.Eq("document-id")).Times(1).Return(index.IndexedFile{
+	idx.EXPECT().FindDocumentById(gomock.Eq("document-id")).Times(1).Return(domain.IndexedFile{
 		Hash:    "hash",
 		Commit:  "commit",
 		Date:    time.Date(2015, 05, 31, 0, 0, 0, 0, time.UTC),

@@ -2,6 +2,7 @@ package index
 
 import (
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/remipassmoilesel/gitsearch/domain"
 	"gitlab.com/remipassmoilesel/gitsearch/test"
 	"os"
 	"path"
@@ -16,7 +17,7 @@ func Test_IndexState_Write(t *testing.T) {
 
 	state := IndexStateImpl{
 		path: statePath,
-		state: &PersistedStateImpl{
+		state: &domain.PersistedState{
 			IndexedCommits: []string{"a", "b", "c"},
 		},
 	}
