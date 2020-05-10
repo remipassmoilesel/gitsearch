@@ -77,7 +77,6 @@ func NewIndex(config config.Config) (Index, error) {
 	return &index, err
 }
 
-// TODO: FIXME: remove method
 func (s *IndexImpl) initialize() error {
 	err := s.state.TryLock()
 	if err != nil {

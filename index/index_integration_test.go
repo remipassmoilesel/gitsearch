@@ -100,30 +100,32 @@ func Test_Index_Clean(t *testing.T) {
 }
 
 func Test_Index_Clean_afterBuild(t *testing.T) {
-	index := testIndex(t, test.REPO_SMALL, 5)
+	idx := testIndex(t, test.REPO_SMALL, 5)
 
-	_, err := index.Build()
+	_, err := idx.Build()
 	assert.NoError(t, err)
 
-	_, err = index.Clean()
+	_, err = idx.Clean()
 	assert.NoError(t, err)
 
-	_, err = os.Stat(index.state.Path())
+	_, err = os.Stat(idx.state.Path())
 	assert.True(t, os.IsNotExist(err))
 
-	err = index.initialize()
+	err = idx.Close()
 	assert.NoError(t, err)
 
-	docCount, err := index.DocumentCount()
+	idx2, err := NewIndex(idx.config)
+	assert.NoError(t, err)
+
+	docCount, err := idx2.DocumentCount()
 	assert.NoError(t, err)
 	assert.Zero(t, docCount)
 
-	_, err = os.Stat(index.state.Path())
+	_, err = os.Stat(idx.state.Path())
 	assert.NoError(t, nil)
 }
 
 // Create a fake git repository then initialize index in
-// TODO: FIXME: return index, do not expect on internals
 func testIndex(t *testing.T, templateName string, batchSize int) IndexImpl {
 	var path, err = test.Helper.SampleGitRepository(templateName)
 	assert.NoError(t, err)

@@ -55,26 +55,31 @@ func Test_BuildIndex_buildShouldWriteState(t *testing.T) {
 }
 
 func Test_BuildIndex_buildTwiceShouldNotIndex(t *testing.T) {
-	index := testIndex(t, test.REPO_SMALL, 2)
+	idx := testIndex(t, test.REPO_SMALL, 2)
 
-	_, err := index.Build()
+	_, err := idx.Build()
 	assert.NoError(t, err)
 
-	err = index.Close()
-	assert.NoError(t, err)
-	err = index.initialize()
+	count1, err := idx.DocumentCount()
 	assert.NoError(t, err)
 
-	buildResult, err := index.Build()
+	err = idx.Close()
 	assert.NoError(t, err)
 
-	assert.NotZero(t, buildResult.TookSeconds)
-	assert.Equal(t, 0, buildResult.Files)
-	assert.Equal(t, 0, buildResult.TotalFiles)
-
-	count, err := index.DocumentCount()
+	idx2, err := NewIndex(idx.config)
 	assert.NoError(t, err)
-	assert.Equal(t, uint64(4), count)
+
+	build2, err := idx2.Build()
+	assert.NoError(t, err)
+
+	assert.NotZero(t, build2.TookSeconds)
+	assert.Equal(t, 0, build2.Files)
+	assert.Equal(t, 0, build2.TotalFiles)
+
+	count2, err := idx2.DocumentCount()
+	assert.NoError(t, err)
+	assert.Equal(t, uint64(4), count1)
+	assert.Equal(t, uint64(4), count2)
 }
 
 func Test_filterFiles(t *testing.T) {
